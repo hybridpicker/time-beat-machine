@@ -1,0 +1,37 @@
+{
+  "name": "Time Beat Machine",
+  "short_name": "TimeBeat",
+  "description": "Timing practice tool and synthesized beat sequencer for musicians",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1f2937",
+  "orientation": "any",
+  "categories": ["music", "education", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start Timing Practice",
+      "short_name": "Practice",
+      "description": "Open Time Beat Machine and start training your inner clock",
+      "url": "/",
+      "icons": [{ "src": "/favicon-32x32.png", "sizes": "32x32" }]
+    }
+  ]
+}
