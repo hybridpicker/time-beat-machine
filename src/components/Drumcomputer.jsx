@@ -45,6 +45,8 @@ export default function Drumcomputer() {
   const [isMobileDevice, setIsMobileDevice] = useState(() => window.innerWidth < 1024);
   const [activeMobileBar, setActiveMobileBar] = useState(0);
   const [showTools, setShowTools] = useState(false);
+  const [isEditingBpm, setIsEditingBpm] = useState(false);
+  const [tempBpmValue, setTempBpmValue] = useState(bpm);
 
   // ── Patterns (8 tracks, 3-level velocity: 0=off, 1=normal, 2=accent) ──
   const [patterns, setPatterns] = useState(() => initialState.patterns);
@@ -431,7 +433,48 @@ export default function Drumcomputer() {
                 onChange={(e) => setBpm(parseInt(e.target.value))}
                 className="flex-1 slider"
               />
-              <span className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-900'}`}>{bpm}</span>
+              {isEditingBpm ? (
+                <input
+                  type="number"
+                  min={50}
+                  max={220}
+                  value={tempBpmValue}
+                  onChange={(e) => setTempBpmValue(parseInt(e.target.value) || 0)}
+                  onBlur={() => {
+                    setIsEditingBpm(false);
+                    if (tempBpmValue >= 50 && tempBpmValue <= 220) {
+                      setBpm(tempBpmValue);
+                    } else {
+                      setTempBpmValue(bpm);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setIsEditingBpm(false);
+                      if (tempBpmValue >= 50 && tempBpmValue <= 220) {
+                        setBpm(tempBpmValue);
+                      } else {
+                        setTempBpmValue(bpm);
+                      }
+                    } else if (e.key === 'Escape') {
+                      setIsEditingBpm(false);
+                      setTempBpmValue(bpm);
+                    }
+                  }}
+                  className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'bg-neutral-700 text-neutral-100 border-neutral-600' : 'bg-neutral-100 text-neutral-900 border-neutral-300'} border rounded px-1 py-0.5`}
+                  autoFocus
+                />
+              ) : (
+                <span 
+                  className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200 hover:text-neutral-100 hover:bg-neutral-700/50' : 'text-neutral-900 hover:text-neutral-900 hover:bg-neutral-200/50'} rounded px-1 py-0.5 cursor-pointer`}
+                  onClick={() => {
+                    setIsEditingBpm(true);
+                    setTempBpmValue(bpm);
+                  }}
+                >
+                  {bpm}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Swing</span>
