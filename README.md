@@ -63,7 +63,7 @@ The sequencer dims and the background shifts during silence — a clear visual c
 
 - **Up to 4 bars**, 16 steps per bar (64 steps total)
 - **3-level velocity**: off → hit → accent (click-cycle)
-- **BPM 50–220**, tap tempo (`T`)
+- **BPM 50–220**, tap tempo (`T`) or direct click-edit
 - **Swing 0–60%**
 - **Per-track mixer**: Volume, Mute, Solo, Copy, Paste
 - **Effects**: Reverb mix, Compressor (threshold/ratio), Voice params (Tune/Decay per track)
@@ -86,6 +86,8 @@ The sequencer dims and the background shifts during silence — a clear visual c
 | `D` | Toggle Dark Mode |
 | `Cmd+Z` | Undo |
 | `Cmd+Shift+Z` | Redo |
+
+*Click directly on BPM value to edit tempo*
 
 ---
 
