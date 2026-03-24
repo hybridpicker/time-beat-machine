@@ -152,11 +152,44 @@ const TrackGrid = React.memo(function TrackGrid({
         </div>
       )}
 
-      {/* Step Grid */}
-      <div
-        className={`grid gap-1 sm:gap-1.5 mt-3 lg:mt-6 ${mute ? 'opacity-40' : ''}`}
-        style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
-      >
+       {/* Step Grid */}
+       <div
+         className={`grid gap-1 sm:gap-1.5 mt-3 lg:mt-6 ${mute ? 'opacity-40' : ''}`}
+         style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
+         onTouchStart={(e) => {
+           if (isMobile) {
+             const touch = e.touches[0];
+             e.currentTarget.dataset.touchStartX = touch.clientX.toString();
+             e.currentTarget.dataset.touchStartY = touch.clientY.toString();
+           }
+         }}
+         onTouchEnd={(e) => {
+           if (isMobile && e.currentTarget.dataset.touchStartX) {
+             const startX = parseFloat(e.currentTarget.dataset.touchStartX);
+             const startY = parseFloat(e.currentTarget.dataset.touchStartY);
+             const endX = e.changedTouches[0].clientX;
+             const endY = e.changedTouches[0].clientY;
+             
+             const deltaX = endX - startX;
+             const deltaY = endY - startY;
+             
+             // Only trigger swipe if horizontal movement > 50px and vertical movement < 30px
+             if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 30) {
+               if (deltaX > 0 && activeMobileBar > 0) {
+                 // Swipe right - previous bar
+                 setActiveMobileBar(activeMobileBar - 1);
+               } else if (deltaX < 0 && activeMobileBar < bars - 1) {
+                 // Swipe left - next bar
+                 setActiveMobileBar(activeMobileBar + 1);
+               }
+             }
+             
+             // Cleanup
+             delete e.currentTarget.dataset.touchStartX;
+             delete e.currentTarget.dataset.touchStartY;
+           }
+         }}
+       >
         {currentBarPattern.map((value, i) => {
           const actualIndex = patternOffset + i;
           return (

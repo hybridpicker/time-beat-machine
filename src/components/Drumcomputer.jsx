@@ -42,7 +42,18 @@ export default function Drumcomputer() {
   const [bpm, setBpm] = useState(initialState.bpm);
   const [bars, setBars] = useState(initialState.bars);
   const [swing, setSwing] = useState(initialState.swing);
-  const [isMobileDevice, setIsMobileDevice] = useState(() => window.innerWidth < 1024);
+  const [deviceType, setDeviceType] = useState(() => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isPortrait = height > width;
+    
+    if (width < 768) return 'phone';
+    if (width >= 768 && width < 1024) return isTouch ? 'tablet' : 'small-desktop';
+    if (width >= 1024 && width < 1280 && isTouch) return 'large-tablet';
+    return 'desktop';
+  });
+  const isMobileDevice = deviceType !== 'desktop' && deviceType !== 'small-desktop';
   const [activeMobileBar, setActiveMobileBar] = useState(0);
   const [showTools, setShowTools] = useState(false);
   const [isEditingBpm, setIsEditingBpm] = useState(false);
@@ -171,9 +182,25 @@ export default function Drumcomputer() {
     }
   }, [bars, scheduler]);
 
-  // ── Mobile resize detection ──
+  // ── Device type detection with resize handling ──
   useEffect(() => {
-    const handleResize = () => setIsMobileDevice(window.innerWidth < 1024);
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isPortrait = height > width;
+      
+      if (width < 768) {
+        setDeviceType('phone');
+      } else if (width >= 768 && width < 1024) {
+        setDeviceType(isTouch ? 'tablet' : 'small-desktop');
+      } else if (width >= 1024 && width < 1280 && isTouch) {
+        setDeviceType('large-tablet');
+      } else {
+        setDeviceType('desktop');
+      }
+    };
+    
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -439,6 +466,11 @@ export default function Drumcomputer() {
                   min={50}
                   max={220}
                   value={tempBpmValue}
+                  ref={(el) => {
+                    if (el && ('ontouchstart' in window)) {
+                      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+                    }
+                  }}
                   onChange={(e) => setTempBpmValue(parseInt(e.target.value) || 0)}
                   onBlur={() => {
                     setIsEditingBpm(false);
