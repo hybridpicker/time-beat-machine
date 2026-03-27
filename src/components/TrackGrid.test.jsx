@@ -82,7 +82,7 @@ describe('TrackGrid', () => {
 
   it('applies muted opacity', () => {
     render(<TrackGrid {...defaultProps} mute={true} />);
-    const gridContainer = document.querySelector('.opacity-40');
+    const gridContainer = document.querySelector('.opacity-30');
     expect(gridContainer).toBeInTheDocument();
   });
 
@@ -117,9 +117,9 @@ describe('TrackGrid', () => {
 
   it('highlights playhead step', () => {
     render(<TrackGrid {...defaultProps} isPlaying={true} playhead={0} />);
-    // The playhead step should have the ring-yellow class
+    // The playhead step should have the indigo ring class
     const step = screen.getByLabelText('Kick step 1 active');
-    expect(step.className).toContain('ring-yellow');
+    expect(step.className).toContain('ring-indigo');
   });
 
   it('shows Copy button on desktop', () => {

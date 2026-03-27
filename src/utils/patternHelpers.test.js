@@ -21,11 +21,10 @@ describe('Constants', () => {
     expect(TRACKS).toHaveLength(8);
   });
 
-  it('every TRACK has id, name, and colorClass', () => {
+  it('every TRACK has id and name', () => {
     TRACKS.forEach(t => {
       expect(t).toHaveProperty('id');
       expect(t).toHaveProperty('name');
-      expect(t).toHaveProperty('colorClass');
     });
   });
 

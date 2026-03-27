@@ -37,16 +37,16 @@ export const getNoteNameFromMidi = (midiNote) => {
   return `${noteName}${octave}`;
 };
 
-// Track definitions with colors
+// Track definitions — monochrome, no per-track colors
 export const TRACKS = [
-  { id: 'kick', name: 'Kick', colorClass: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25' },
-  { id: 'snare', name: 'Snare', colorClass: 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/25' },
-  { id: 'hat', name: 'Hi-Hat', colorClass: 'bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/25' },
-  { id: 'openhat', name: 'Open Hat', colorClass: 'bg-gradient-to-r from-violet-500 to-violet-600 text-white shadow-lg shadow-violet-500/25' },
-  { id: 'clap', name: 'Clap', colorClass: 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/25' },
-  { id: 'cymbal', name: 'Cymbal', colorClass: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/25' },
-  { id: 'tom', name: 'Tom', colorClass: 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/25' },
-  { id: 'rim', name: 'Rimshot', colorClass: 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' },
+  { id: 'kick',    name: 'Kick'     },
+  { id: 'snare',   name: 'Snare'    },
+  { id: 'hat',     name: 'Hi-Hat'   },
+  { id: 'openhat', name: 'Open Hat' },
+  { id: 'clap',    name: 'Clap'     },
+  { id: 'cymbal',  name: 'Cymbal'   },
+  { id: 'tom',     name: 'Tom'      },
+  { id: 'rim',     name: 'Rimshot'  },
 ];
 
 // Accent color classes (ring for 3-state velocity)

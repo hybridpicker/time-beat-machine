@@ -1,14 +1,39 @@
 import React, { useCallback, useMemo } from 'react';
-import { STEPS_PER_BAR, ACCENT_RING } from '../utils/patternHelpers';
+import { STEPS_PER_BAR } from '../utils/patternHelpers';
 
 // Memoized step button — only re-renders when its own props change.
-// Per step-advance, only 2 buttons change (old playhead loses ring, new one gains it).
 const StepButton = React.memo(function StepButton({
   value, isPlayhead, isBeat, isBarStart, isMobile, patternLength,
-  colorClass, trackId, actualIndex, i, name, isDragging,
+  darkMode, trackId, actualIndex, i, name, isDragging,
   onDragStart, onDragEnter, onToggleStep,
 }) {
   const isActive = value > 0;
+
+  const sizeClass = isMobile
+    ? 'h-12 sm:h-14 rounded-md'
+    : patternLength <= 16
+      ? 'h-10 sm:h-12 md:h-14 rounded-md'
+      : 'h-8 sm:h-10 md:h-12 rounded-sm sm:rounded';
+
+  const colorClass = isActive
+    ? darkMode
+      ? 'bg-neutral-200 text-neutral-900 border-transparent'
+      : 'bg-neutral-700 text-white border-transparent'
+    : darkMode
+      ? 'bg-neutral-800 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600'
+      : 'bg-neutral-100 border-neutral-200 hover:bg-neutral-200 hover:border-neutral-300';
+
+  const beatClass = isBeat && !isActive
+    ? darkMode ? 'border-l-2 border-l-neutral-600' : 'border-l-2 border-l-neutral-300'
+    : '';
+
+  const playheadClass = isPlayhead
+    ? 'ring-2 ring-indigo-500/60 ring-offset-1 sm:ring-offset-2'
+    : '';
+
+  const barStartClass = !isMobile && isBarStart
+    ? darkMode ? 'border-l-4 border-l-neutral-600' : 'border-l-4 border-l-neutral-300'
+    : '';
 
   return (
     <button
@@ -22,30 +47,28 @@ const StepButton = React.memo(function StepButton({
       }}
       onTouchStart={(e) => { e.preventDefault(); onToggleStep(trackId, actualIndex); }}
       className={[
-        isMobile
-          ? "h-12 sm:h-14 rounded-xl"
-          : patternLength <= 16
-            ? "h-10 sm:h-12 md:h-14 rounded-lg sm:rounded-xl"
-            : "h-8 sm:h-10 md:h-12 rounded-md sm:rounded-lg",
-        "border relative cursor-pointer select-none transition-all duration-150",
-        isActive
-          ? `${colorClass} border-transparent shadow-sm`
-          : "bg-white/80 backdrop-blur-sm border-neutral-200/60 hover:border-neutral-300/80 hover:bg-white/90 active:bg-neutral-100/60",
-        isBeat && !isActive ? "border-neutral-300/80 shadow-sm" : "",
-        isPlayhead ? "ring-2 ring-yellow-400/80 ring-offset-1 sm:ring-offset-2" : "",
-        "active:scale-95 touch-manipulation",
-        !isMobile && isBarStart ? "border-l-4 border-l-neutral-300/60" : "",
-      ].join(" ")}
+        sizeClass,
+        'border relative cursor-pointer select-none transition-all duration-150',
+        colorClass,
+        beatClass,
+        playheadClass,
+        barStartClass,
+        'active:scale-95 touch-manipulation',
+      ].join(' ')}
       aria-label={`${name} step ${actualIndex + 1} ${isActive ? 'active' : 'inactive'}`}
       type="button"
     >
       {i % 4 === 0 && (
-        <span className="absolute -top-2 sm:-top-3 left-0 text-[8px] sm:text-[9px] text-neutral-400 font-mono font-bold pointer-events-none bg-white/60 px-0.5 sm:px-1 rounded">
+        <span className={`absolute -top-2 sm:-top-3 left-0 text-[8px] sm:text-[9px] font-mono font-medium pointer-events-none px-0.5 sm:px-1 rounded ${
+          darkMode ? 'text-neutral-500 bg-neutral-900/60' : 'text-neutral-400 bg-white/60'
+        }`}>
           {(isMobile ? i : actualIndex % STEPS_PER_BAR) + 1}
         </span>
       )}
       {!isMobile && actualIndex % STEPS_PER_BAR === 0 && (
-        <span className="absolute -top-6 left-0 text-[10px] text-neutral-500 font-mono font-bold pointer-events-none bg-gradient-to-r from-neutral-100 to-neutral-50 px-1.5 py-0.5 rounded-full border border-neutral-200/60 shadow-sm hidden lg:block">
+        <span className={`absolute -top-6 left-0 text-[10px] font-mono font-medium pointer-events-none px-1.5 py-0.5 rounded border hidden lg:block ${
+          darkMode ? 'text-neutral-500 bg-neutral-900 border-neutral-700' : 'text-neutral-400 bg-white border-neutral-200'
+        }`}>
           Bar {Math.floor(actualIndex / STEPS_PER_BAR) + 1}
         </span>
       )}
@@ -54,7 +77,7 @@ const StepButton = React.memo(function StepButton({
 });
 
 const TrackGrid = React.memo(function TrackGrid({
-  trackId, name, pattern, colorClass, playhead, isPlaying,
+  trackId, name, pattern, playhead, isPlaying,
   isMobileDevice, bars, activeMobileBar, setActiveMobileBar,
   onToggleStep, volume, mute, solo, onVolumeChange, onMuteToggle, onSoloToggle,
   isDragging, onDragStart, onDragEnter,
@@ -70,106 +93,94 @@ const TrackGrid = React.memo(function TrackGrid({
 
   const activeCount = useMemo(() => pattern.filter((x) => !!x).length, [pattern]);
 
+  const dm = darkMode;
+
   return (
-    <div className="mb-2 sm:mb-4 md:mb-5">
+    <div className={`py-3 sm:py-4 border-b last:border-b-0 ${darkMode ? 'border-neutral-800' : 'border-neutral-100'}`}>
       <div className="flex items-center justify-between mb-1 sm:mb-3">
         <div className="flex items-center gap-1.5 sm:gap-3">
-          <span className="text-xs sm:text-sm font-semibold text-neutral-700 min-w-[3.5rem] sm:min-w-[4rem]">{name}</span>
-          {/* Mixer inline controls */}
-          <div className="flex items-center gap-0.5 sm:gap-1">
+          <span className={`text-xs font-medium min-w-[3.5rem] sm:min-w-[4rem] tracking-tight ${dm ? 'text-neutral-300' : 'text-neutral-600'}`}>{name}</span>
+
+          {/* M / S / C / P — plain text controls, no boxes */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => onMuteToggle(trackId)}
-              className={`text-[9px] sm:text-[10px] w-5 h-5 sm:w-6 sm:h-6 rounded font-mono font-bold transition-all active:scale-95 ${
+              className={`text-[9px] sm:text-[10px] font-mono transition-colors ${
                 mute
-                  ? 'bg-red-500 text-white shadow-sm shadow-red-500/30'
-                  : darkMode ? 'bg-neutral-700/80 text-neutral-500 hover:bg-red-900/60 hover:text-red-400' : 'bg-neutral-100/60 text-neutral-400 hover:bg-red-50 hover:text-red-500'
+                  ? 'text-red-500'
+                  : dm ? 'text-neutral-600 hover:text-neutral-300' : 'text-neutral-400 hover:text-neutral-700'
               }`}
               title="Mute"
-            >M</button>
+            >m</button>
             <button
               onClick={() => onSoloToggle(trackId)}
-              className={`text-[9px] sm:text-[10px] w-5 h-5 sm:w-6 sm:h-6 rounded font-mono font-bold transition-all active:scale-95 ${
+              className={`text-[9px] sm:text-[10px] font-mono transition-colors ${
                 solo
-                  ? 'bg-amber-400 text-neutral-900 shadow-sm shadow-amber-400/30'
-                  : darkMode ? 'bg-neutral-700/80 text-neutral-500 hover:bg-amber-900/60 hover:text-amber-400' : 'bg-neutral-100/60 text-neutral-400 hover:bg-amber-50 hover:text-amber-600'
+                  ? 'text-amber-500'
+                  : dm ? 'text-neutral-600 hover:text-neutral-300' : 'text-neutral-400 hover:text-neutral-700'
               }`}
               title="Solo"
-            >S</button>
+            >s</button>
             <input
               type="range"
               min={0} max={100} value={volume}
               onChange={(e) => onVolumeChange(trackId, parseInt(e.target.value))}
-              className="hidden sm:block w-14 md:w-16 h-1 slider opacity-50 hover:opacity-100 transition-opacity"
+              className="hidden sm:block w-12 md:w-14 h-px slider opacity-30 hover:opacity-70 transition-opacity"
               title={`Volume: ${volume}%`}
             />
             {onCopy && (
               <button
                 onClick={() => onCopy(trackId)}
-                className={`text-[9px] sm:text-[10px] w-5 h-5 sm:w-6 sm:h-6 rounded font-mono font-bold transition-all active:scale-95 hidden sm:flex items-center justify-center ${
-                  darkMode
-                    ? 'bg-neutral-700/80 text-neutral-400 hover:bg-sky-900/60 hover:text-sky-400'
-                    : 'bg-neutral-100/80 text-neutral-400 hover:bg-sky-50 hover:text-sky-600'
+                className={`text-[9px] sm:text-[10px] font-mono transition-colors hidden sm:block ${
+                  dm ? 'text-neutral-600 hover:text-neutral-300' : 'text-neutral-400 hover:text-neutral-700'
                 }`}
                 title="Copy track pattern"
-              >C</button>
+              >c</button>
             )}
             {onPaste && hasClipboard && (
               <button
                 onClick={() => onPaste(trackId)}
-                className={`text-[9px] sm:text-[10px] w-5 h-5 sm:w-6 sm:h-6 rounded font-mono font-bold transition-all active:scale-95 hidden sm:flex items-center justify-center ${
-                  darkMode
-                    ? 'bg-sky-800/80 text-sky-300 hover:bg-sky-700/80'
-                    : 'bg-sky-100 text-sky-600 hover:bg-sky-200'
+                className={`text-[9px] sm:text-[10px] font-mono transition-colors hidden sm:block ${
+                  dm ? 'text-neutral-400' : 'text-neutral-600'
                 }`}
                 title="Paste copied pattern"
-              >P</button>
+              >p</button>
             )}
           </div>
         </div>
-        <span className="text-[9px] sm:text-xs text-neutral-400 font-mono tabular-nums">
+        <span className={`text-[9px] sm:text-xs font-mono tabular-nums ${dm ? 'text-neutral-600' : 'text-neutral-400'}`}>
           {activeCount}/{pattern.length}
         </span>
       </div>
 
-
-       {/* Step Grid */}
-       <div
-         className={`grid gap-1 sm:gap-1.5 mt-4 ${mute ? 'opacity-40' : ''}`}
-         style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
-         onTouchStart={(e) => {
-           if (isMobile) {
-             const touch = e.touches[0];
-             e.currentTarget.dataset.touchStartX = touch.clientX.toString();
-             e.currentTarget.dataset.touchStartY = touch.clientY.toString();
-           }
-         }}
-         onTouchEnd={(e) => {
-           if (isMobile && e.currentTarget.dataset.touchStartX) {
-             const startX = parseFloat(e.currentTarget.dataset.touchStartX);
-             const startY = parseFloat(e.currentTarget.dataset.touchStartY);
-             const endX = e.changedTouches[0].clientX;
-             const endY = e.changedTouches[0].clientY;
-             
-             const deltaX = endX - startX;
-             const deltaY = endY - startY;
-             
-             // Only trigger swipe if horizontal movement > 50px and vertical movement < 30px
-             if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 30) {
-               if (deltaX > 0 && activeMobileBar > 0) {
-                 // Swipe right - previous bar
-                 setActiveMobileBar(activeMobileBar - 1);
-               } else if (deltaX < 0 && activeMobileBar < bars - 1) {
-                 // Swipe left - next bar
-                 setActiveMobileBar(activeMobileBar + 1);
-               }
-             }
-             
-             // Cleanup
-             delete e.currentTarget.dataset.touchStartX;
-             delete e.currentTarget.dataset.touchStartY;
-           }
-         }}
-       >
+      {/* Step Grid */}
+      <div
+        className={`grid gap-1 sm:gap-1.5 mt-4 ${mute ? 'opacity-30' : ''}`}
+        style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
+        onTouchStart={(e) => {
+          if (isMobile) {
+            const touch = e.touches[0];
+            e.currentTarget.dataset.touchStartX = touch.clientX.toString();
+            e.currentTarget.dataset.touchStartY = touch.clientY.toString();
+          }
+        }}
+        onTouchEnd={(e) => {
+          if (isMobile && e.currentTarget.dataset.touchStartX) {
+            const startX = parseFloat(e.currentTarget.dataset.touchStartX);
+            const startY = parseFloat(e.currentTarget.dataset.touchStartY);
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 30) {
+              if (deltaX > 0 && activeMobileBar > 0) setActiveMobileBar(activeMobileBar - 1);
+              else if (deltaX < 0 && activeMobileBar < bars - 1) setActiveMobileBar(activeMobileBar + 1);
+            }
+            delete e.currentTarget.dataset.touchStartX;
+            delete e.currentTarget.dataset.touchStartY;
+          }
+        }}
+      >
         {currentBarPattern.map((value, i) => {
           const actualIndex = patternOffset + i;
           return (
@@ -181,7 +192,7 @@ const TrackGrid = React.memo(function TrackGrid({
               isBarStart={!isMobile && actualIndex % STEPS_PER_BAR === 0 && actualIndex > 0}
               isMobile={isMobile}
               patternLength={pattern.length}
-              colorClass={colorClass}
+              darkMode={darkMode}
               trackId={trackId}
               actualIndex={actualIndex}
               i={i}
