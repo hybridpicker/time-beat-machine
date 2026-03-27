@@ -59,7 +59,7 @@ export default function Drumcomputer() {
   const [isEditingBpm, setIsEditingBpm] = useState(false);
   const [tempBpmValue, setTempBpmValue] = useState(bpm);
 
-  // ── Patterns (8 tracks, 2-state: 0=off, 1=on) ──
+  // ── Patterns (8 tracks, 3-level velocity: 0=off, 1=normal, 2=accent) ──
   const [patterns, setPatterns] = useState(() => initialState.patterns);
 
   // Refs for scheduler access (avoids stale closures)
@@ -230,22 +230,22 @@ export default function Drumcomputer() {
   });
 
   // ── Pattern Manipulation ──
-   const toggleStep = useCallback((trackId, idx) => {
-     setPatterns(prev => {
-       const next = { ...prev };
-       const pat = [...prev[trackId]];
-       // 2-state toggle: 0 → 1 → 0
-       pat[idx] = pat[idx] === 0 ? 1 : 0;
-       next[trackId] = pat;
-       // Update ref immediately
-       patternsRef.current = next;
-       // Schedule if just turned on
-       if (pat[idx] === 1 && prev[trackId][idx] === 0) {
-         scheduler.scheduleIfSoon(trackId, idx);
-       }
-       return next;
-     });
-   }, [scheduler]);
+  const toggleStep = useCallback((trackId, idx) => {
+    setPatterns(prev => {
+      const next = { ...prev };
+      const pat = [...prev[trackId]];
+      // 3-state cycle: 0 → 1 → 2 → 0
+      pat[idx] = pat[idx] === 0 ? 1 : pat[idx] === 1 ? 2 : 0;
+      next[trackId] = pat;
+      // Update ref immediately
+      patternsRef.current = next;
+      // Schedule if just turned on
+      if (pat[idx] >= 1 && prev[trackId][idx] === 0) {
+        scheduler.scheduleIfSoon(trackId, idx);
+      }
+      return next;
+    });
+  }, [scheduler]);
 
   const clearAll = useCallback(() => {
     const next = {};
@@ -670,8 +670,8 @@ export default function Drumcomputer() {
               <span className="text-sm sm:text-lg">💡</span>
               <div>
                 <strong>Tip:</strong>
-                <span className="hidden sm:inline"> Click = On / Off • Open Tools (▼) → Timing Trainer (G) to practice your inner clock with silence gaps</span>
-                <span className="sm:hidden"> Tap: On / Off • Tools → Timing Trainer</span>
+                <span className="hidden sm:inline"> Click = On → Accent → Off • Open Tools (▼) → Timing Trainer (G) to practice your inner clock with silence gaps</span>
+                <span className="sm:hidden"> Tap: Off → On → Accent → Off • Tools → Timing Trainer</span>
               </div>
             </div>
           </div>
