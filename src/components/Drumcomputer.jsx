@@ -173,12 +173,18 @@ export default function Drumcomputer() {
   // ── Scheduler ──
   const scheduler = useScheduler(audioEngine, patternsRef, mixerRef, trainerHook, voiceParamsRef, metronomeRef);
 
+  // Destructure stable scheduler callbacks with sc- prefix to avoid name collisions
+  const {
+    setBpm: scSetBpm, setSwing: scSetSwing, setGrooveOffset: scSetGrooveOffset,
+    setEinsClick: scSetEinsClick, setBarsRef: scSetBarsRef, currentStepRef,
+  } = scheduler;
+
   // Sync BPM/Swing/Bars to scheduler refs
-  useEffect(() => { scheduler.setBpm(bpm); }, [bpm, scheduler]);
-  useEffect(() => { scheduler.setSwing(swing); }, [swing, scheduler]);
-  useEffect(() => { scheduler.setGrooveOffset(grooveOffset); }, [grooveOffset, scheduler]);
-  useEffect(() => { scheduler.setEinsClick(einsClick); }, [einsClick, scheduler]);
-  useEffect(() => { scheduler.setBarsRef(bars); }, [bars, scheduler]);
+  useEffect(() => { scSetBpm(bpm); }, [bpm, scSetBpm]);
+  useEffect(() => { scSetSwing(swing); }, [swing, scSetSwing]);
+  useEffect(() => { scSetGrooveOffset(grooveOffset); }, [grooveOffset, scSetGrooveOffset]);
+  useEffect(() => { scSetEinsClick(einsClick); }, [einsClick, scSetEinsClick]);
+  useEffect(() => { scSetBarsRef(bars); }, [bars, scSetBarsRef]);
 
   // ── Resize patterns when bars change ──
   useEffect(() => {
@@ -189,10 +195,10 @@ export default function Drumcomputer() {
       });
       return next;
     });
-    if (scheduler.currentStepRef.current >= bars * STEPS_PER_BAR) {
-      scheduler.currentStepRef.current = 0;
+    if (currentStepRef.current >= bars * STEPS_PER_BAR) {
+      currentStepRef.current = 0;
     }
-  }, [bars, scheduler]);
+  }, [bars, currentStepRef]);
 
   // ── Device type detection with resize handling ──
   useEffect(() => {
@@ -257,7 +263,7 @@ export default function Drumcomputer() {
       }
       return next;
     });
-  }, [scheduler]);
+  }, [scheduler.scheduleIfSoon]);
 
   const clearAll = useCallback(() => {
     const next = {};

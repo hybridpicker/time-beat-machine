@@ -116,32 +116,44 @@ export function triggerClap(ctx, dest, time, velocity = 1, params) {
   const v = velGain(velocity);
   const tune = getTune(params);
   const decay = getDecay(params);
-  for (let burst = 0; burst < 4; burst++) {
-    const t = time + burst * 0.025;
+
+  // 3 rapid attack bursts — the "smack" transient of a hand clap.
+  // Key: 8ms apart (not 25ms — that causes the guiro/scraping sound).
+  [0, 0.008, 0.016].forEach((offset, i) => {
+    const t = time + offset;
     const noise = noiseSource(ctx, 'short');
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 1200 * tune;
+    hp.Q.value = 0.5;
     const bp = ctx.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.frequency.value = 2000 * tune;
-    bp.Q.value = 1.5;
+    bp.type = 'bandpass';
+    bp.frequency.value = 2800 * tune;
+    bp.Q.value = 2.5;
     const gain = ctx.createGain();
-    const amp = (burst === 3 ? 0.5 : 0.3) * v;
-    gain.gain.setValueAtTime(amp, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.015 * decay);
-    noise.connect(bp).connect(gain).connect(dest);
+    gain.gain.setValueAtTime((i === 2 ? 0.55 : 0.38) * v, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.006 * decay);
+    noise.connect(hp).connect(bp).connect(gain).connect(dest);
     noise.start(t);
-    noise.stop(t + 0.02 * decay);
-  }
-  const tail = noiseSource(ctx, 'short');
+    noise.stop(t + 0.009);
+  });
+
+  // Airy tail — body of the clap, starts right after the transient
+  const tail = noiseSource(ctx, 'medium');
+  const tailHp = ctx.createBiquadFilter();
+  tailHp.type = 'highpass';
+  tailHp.frequency.value = 900 * tune;
+  tailHp.Q.value = 0.3;
   const tailBp = ctx.createBiquadFilter();
-  tailBp.type = "bandpass";
-  tailBp.frequency.value = 1500 * tune;
-  tailBp.Q.value = 0.8;
+  tailBp.type = 'bandpass';
+  tailBp.frequency.value = 2000 * tune;
+  tailBp.Q.value = 1.2;
   const tailGain = ctx.createGain();
-  tailGain.gain.setValueAtTime(0.35 * v, time + 0.075);
-  tailGain.gain.exponentialRampToValueAtTime(0.001, time + 0.15 * decay);
-  tail.connect(tailBp).connect(tailGain).connect(dest);
-  tail.start(time + 0.075);
-  tail.stop(time + 0.2 * decay);
+  tailGain.gain.setValueAtTime(0.42 * v, time + 0.022);
+  tailGain.gain.exponentialRampToValueAtTime(0.001, time + 0.13 * decay);
+  tail.connect(tailHp).connect(tailBp).connect(tailGain).connect(dest);
+  tail.start(time + 0.022);
+  tail.stop(time + 0.18 * decay);
 }
 
 export function triggerCymbal(ctx, dest, time, velocity = 1, params) {
