@@ -8,8 +8,7 @@ const StepButton = React.memo(function StepButton({
   colorClass, trackId, actualIndex, i, name, isDragging,
   onDragStart, onDragEnter, onToggleStep,
 }) {
-  const isActive = value >= 1;
-  const isAccent = value === 2;
+  const isActive = value > 0;
 
   return (
     <button
@@ -32,13 +31,12 @@ const StepButton = React.memo(function StepButton({
         isActive
           ? `${colorClass} border-transparent shadow-sm`
           : "bg-white/80 backdrop-blur-sm border-neutral-200/60 hover:border-neutral-300/80 hover:bg-white/90 active:bg-neutral-100/60",
-        isAccent && isActive ? ACCENT_RING : "",
         isBeat && !isActive ? "border-neutral-300/80 shadow-sm" : "",
         isPlayhead ? "ring-2 ring-yellow-400/80 ring-offset-1 sm:ring-offset-2" : "",
         "active:scale-95 touch-manipulation",
         !isMobile && isBarStart ? "border-l-4 border-l-neutral-300/60" : "",
       ].join(" ")}
-      aria-label={`${name} step ${actualIndex + 1} ${isActive ? (isAccent ? 'accent' : 'active') : 'inactive'}`}
+      aria-label={`${name} step ${actualIndex + 1} ${isActive ? 'active' : 'inactive'}`}
       type="button"
     >
       {i % 4 === 0 && (

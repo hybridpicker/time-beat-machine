@@ -234,13 +234,13 @@ export default function Drumcomputer() {
     setPatterns(prev => {
       const next = { ...prev };
       const pat = [...prev[trackId]];
-      // 3-state cycle: 0 → 1 → 2 → 0
-      pat[idx] = pat[idx] === 0 ? 1 : pat[idx] === 1 ? 2 : 0;
+      // 2-state toggle: 0 → 1 → 0
+      pat[idx] = pat[idx] === 0 ? 1 : 0;
       next[trackId] = pat;
       // Update ref immediately
       patternsRef.current = next;
       // Schedule if just turned on
-      if (pat[idx] >= 1 && prev[trackId][idx] === 0) {
+      if (pat[idx] === 1 && prev[trackId][idx] === 0) {
         scheduler.scheduleIfSoon(trackId, idx);
       }
       return next;

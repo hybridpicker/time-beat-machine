@@ -103,11 +103,11 @@ describe('TrackGrid', () => {
     expect(stepButtons).toHaveLength(32);
   });
 
-  it('shows accent aria-label for accented step', () => {
+  it('shows active aria-label for an on step (2-state toggle)', () => {
     const pattern = emptyPattern(1);
-    pattern[0] = 2; // accent
+    pattern[0] = 1;
     render(<TrackGrid {...defaultProps} pattern={pattern} />);
-    expect(screen.getByLabelText('Kick step 1 accent')).toBeInTheDocument();
+    expect(screen.getByLabelText('Kick step 1 active')).toBeInTheDocument();
   });
 
   it('shows inactive aria-label for empty step', () => {
