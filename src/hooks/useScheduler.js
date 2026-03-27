@@ -57,14 +57,16 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
       trainerHook.onStepAdvance(step, total);
       const muted = trainerHook.isInGap();
 
-      // Eins-Click: prominent low thud on beat 1 of each bar — always on the grid, no groove offset
-      if (einsClickRef.current && step % STEPS_PER_BAR === 0) {
+      // Beat-Click: low thud on all 4 beats — always on the grid, no groove offset
+      // Beat 1 (Eins) is louder and lower than beats 2–4
+      if (einsClickRef.current && step % 4 === 0) {
+        const isEins = step % STEPS_PER_BAR === 0;
         const einsOsc = ctx.createOscillator();
         const einsGain = ctx.createGain();
         einsOsc.type = 'sine';
-        einsOsc.frequency.setValueAtTime(300, t);
-        einsOsc.frequency.exponentialRampToValueAtTime(80, t + 0.08);
-        einsGain.gain.setValueAtTime(0.5, t);
+        einsOsc.frequency.setValueAtTime(isEins ? 900 : 500, t);
+        einsOsc.frequency.exponentialRampToValueAtTime(isEins ? 300 : 150, t + 0.06);
+        einsGain.gain.setValueAtTime(isEins ? 0.4 : 0.2, t);
         einsGain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
         einsOsc.connect(einsGain).connect(ctx.destination);
         einsOsc.start(t);
