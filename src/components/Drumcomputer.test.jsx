@@ -11,9 +11,11 @@ const mockScheduler = {
   scheduleIfSoon: vi.fn(),
   bpmRef: { current: 100 },
   swingRef: { current: 0 },
+  grooveOffsetRef: { current: 0 },
   barsRef: { current: 2 },
   setBpm: vi.fn(),
   setSwing: vi.fn(),
+  setGrooveOffset: vi.fn(),
   setBarsRef: vi.fn(),
   currentStepRef: { current: 0 },
 };

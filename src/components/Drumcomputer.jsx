@@ -42,6 +42,7 @@ export default function Drumcomputer() {
   const [bpm, setBpm] = useState(initialState.bpm);
   const [bars, setBars] = useState(initialState.bars);
   const [swing, setSwing] = useState(initialState.swing);
+  const [grooveOffset, setGrooveOffset] = useState(0);
   const [deviceType, setDeviceType] = useState(() => {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -166,6 +167,7 @@ export default function Drumcomputer() {
   // Sync BPM/Swing/Bars to scheduler refs
   useEffect(() => { scheduler.setBpm(bpm); }, [bpm, scheduler]);
   useEffect(() => { scheduler.setSwing(swing); }, [swing, scheduler]);
+  useEffect(() => { scheduler.setGrooveOffset(grooveOffset); }, [grooveOffset, scheduler]);
   useEffect(() => { scheduler.setBarsRef(bars); }, [bars, scheduler]);
 
   // ── Resize patterns when bars change ──
@@ -451,8 +453,8 @@ export default function Drumcomputer() {
             >{showTools ? '▲ Tools' : '▼ Tools'}</button>
           </div>
 
-          {/* Row 2: BPM + Swing sliders */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-3">
+          {/* Row 2: BPM + Swing + Groove sliders */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 mb-3">
             <div className="flex items-center gap-2">
               <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>BPM</span>
               <input
@@ -516,6 +518,17 @@ export default function Drumcomputer() {
                 className="flex-1 slider"
               />
               <span className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-900'}`}>{swing}%</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Groove</span>
+              <input
+                type="range" min={-50} max={50} value={grooveOffset}
+                onChange={(e) => setGrooveOffset(parseInt(e.target.value))}
+                className="flex-1 slider"
+              />
+              <span className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-900'}`}>
+                {grooveOffset === 0 ? '0ms' : grooveOffset > 0 ? `+${grooveOffset}ms` : `${grooveOffset}ms`}
+              </span>
             </div>
           </div>
 

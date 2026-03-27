@@ -16,11 +16,13 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
 
   const bpmRef = useRef(100);
   const swingRef = useRef(0);
+  const grooveOffsetRef = useRef(0); // ms, positive = laid back, negative = push
   const barsRef = useRef(2);
   const lastUiStepRef = useRef(-1);
 
   const setBpm = useCallback((v) => { bpmRef.current = v; }, []);
   const setSwing = useCallback((v) => { swingRef.current = v; }, []);
+  const setGrooveOffset = useCallback((v) => { grooveOffsetRef.current = v; }, []);
   const setBarsRef = useCallback((v) => { barsRef.current = v; }, []);
 
   const swingOffsetForStep = useCallback((stepIndex) => {
@@ -41,9 +43,11 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
       const step = currentStepRef.current % total;
       const swingOffset = swingOffsetForStep(step);
       const t = nextNoteTimeRef.current + swingOffset;
+      // Drum hits are offset by grooveOffset (ms); metronome click stays on the grid
+      const drumTime = t + grooveOffsetRef.current / 1000;
 
-      // Record scheduled time for accurate visual sync
-      scheduleTimesRef.current.push({ step, time: t });
+      // Record scheduled drum time for accurate visual sync
+      scheduleTimesRef.current.push({ step, time: drumTime });
       if (scheduleTimesRef.current.length > total + 8) {
         scheduleTimesRef.current = scheduleTimesRef.current.slice(-(total + 8));
       }
@@ -51,7 +55,7 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
       trainerHook.onStepAdvance(step, total);
       const muted = trainerHook.isInGap();
 
-      // Metronome click on beats (every 4 steps)
+      // Metronome click on beats (every 4 steps) — always on the grid, no groove offset
       if (metronomeRef?.current && step % 4 === 0) {
         const clickOsc = ctx.createOscillator();
         const clickGain = ctx.createGain();
@@ -85,7 +89,7 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
           if (!dest) return;
           const trigger = triggerMap[trackId];
           const vp = voiceParamsRef?.current?.[trackId];
-          if (trigger) trigger(ctx, dest, t, val, vp); // val: 1=normal, 2=accent
+          if (trigger) trigger(ctx, dest, drumTime, val, vp); // val: 1=normal, 2=accent
         });
       }
 
@@ -174,7 +178,7 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
 
   return {
     isPlaying, uiStep, handleStart, handleStop, handleToggle, scheduleIfSoon,
-    bpmRef, swingRef, barsRef, setBpm, setSwing, setBarsRef,
+    bpmRef, swingRef, grooveOffsetRef, barsRef, setBpm, setSwing, setGrooveOffset, setBarsRef,
     currentStepRef,
   };
 }
