@@ -524,7 +524,7 @@ export default function Drumcomputer() {
             <div className="flex items-center gap-2">
               <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Groove</span>
               <input
-                type="range" min={-50} max={50} value={grooveOffset}
+                type="range" min={-100} max={100} value={grooveOffset}
                 onChange={(e) => setGrooveOffset(parseInt(e.target.value))}
                 className="flex-1 slider"
               />
