@@ -43,6 +43,7 @@ export default function Drumcomputer() {
   const [bars, setBars] = useState(initialState.bars);
   const [swing, setSwing] = useState(initialState.swing);
   const [grooveOffset, setGrooveOffset] = useState(0);
+  const [einsClick, setEinsClick] = useState(false);
   const [deviceType, setDeviceType] = useState(() => {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -168,6 +169,7 @@ export default function Drumcomputer() {
   useEffect(() => { scheduler.setBpm(bpm); }, [bpm, scheduler]);
   useEffect(() => { scheduler.setSwing(swing); }, [swing, scheduler]);
   useEffect(() => { scheduler.setGrooveOffset(grooveOffset); }, [grooveOffset, scheduler]);
+  useEffect(() => { scheduler.setEinsClick(einsClick); }, [einsClick, scheduler]);
   useEffect(() => { scheduler.setBarsRef(bars); }, [bars, scheduler]);
 
   // ── Resize patterns when bars change ──
@@ -529,6 +531,15 @@ export default function Drumcomputer() {
               <span className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-900'}`}>
                 {grooveOffset === 0 ? '0ms' : grooveOffset > 0 ? `+${grooveOffset}ms` : `${grooveOffset}ms`}
               </span>
+              <button
+                onClick={() => setEinsClick(v => !v)}
+                title="Eins-Click: fester Downbeat auf der 1"
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 border transition-colors ${
+                  einsClick
+                    ? 'bg-amber-400 border-amber-500 text-amber-900'
+                    : dm ? 'bg-neutral-700 border-neutral-600 text-neutral-400' : 'bg-neutral-100 border-neutral-300 text-neutral-500'
+                }`}
+              >1</button>
             </div>
           </div>
 

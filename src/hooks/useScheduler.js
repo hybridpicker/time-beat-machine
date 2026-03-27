@@ -17,12 +17,14 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
   const bpmRef = useRef(100);
   const swingRef = useRef(0);
   const grooveOffsetRef = useRef(0); // ms, positive = laid back, negative = push
+  const einsClickRef = useRef(false); // prominent downbeat click on beat 1, always on grid
   const barsRef = useRef(2);
   const lastUiStepRef = useRef(-1);
 
   const setBpm = useCallback((v) => { bpmRef.current = v; }, []);
   const setSwing = useCallback((v) => { swingRef.current = v; }, []);
   const setGrooveOffset = useCallback((v) => { grooveOffsetRef.current = v; }, []);
+  const setEinsClick = useCallback((v) => { einsClickRef.current = v; }, []);
   const setBarsRef = useCallback((v) => { barsRef.current = v; }, []);
 
   const swingOffsetForStep = useCallback((stepIndex) => {
@@ -54,6 +56,20 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
 
       trainerHook.onStepAdvance(step, total);
       const muted = trainerHook.isInGap();
+
+      // Eins-Click: prominent low thud on beat 1 of each bar — always on the grid, no groove offset
+      if (einsClickRef.current && step % STEPS_PER_BAR === 0) {
+        const einsOsc = ctx.createOscillator();
+        const einsGain = ctx.createGain();
+        einsOsc.type = 'sine';
+        einsOsc.frequency.setValueAtTime(300, t);
+        einsOsc.frequency.exponentialRampToValueAtTime(80, t + 0.08);
+        einsGain.gain.setValueAtTime(0.5, t);
+        einsGain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        einsOsc.connect(einsGain).connect(ctx.destination);
+        einsOsc.start(t);
+        einsOsc.stop(t + 0.13);
+      }
 
       // Metronome click on beats (every 4 steps) — always on the grid, no groove offset
       if (metronomeRef?.current && step % 4 === 0) {
@@ -178,7 +194,8 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
 
   return {
     isPlaying, uiStep, handleStart, handleStop, handleToggle, scheduleIfSoon,
-    bpmRef, swingRef, grooveOffsetRef, barsRef, setBpm, setSwing, setGrooveOffset, setBarsRef,
+    bpmRef, swingRef, grooveOffsetRef, einsClickRef, barsRef,
+    setBpm, setSwing, setGrooveOffset, setEinsClick, setBarsRef,
     currentStepRef,
   };
 }

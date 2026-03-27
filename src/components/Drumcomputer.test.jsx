@@ -12,10 +12,12 @@ const mockScheduler = {
   bpmRef: { current: 100 },
   swingRef: { current: 0 },
   grooveOffsetRef: { current: 0 },
+  einsClickRef: { current: false },
   barsRef: { current: 2 },
   setBpm: vi.fn(),
   setSwing: vi.fn(),
   setGrooveOffset: vi.fn(),
+  setEinsClick: vi.fn(),
   setBarsRef: vi.fn(),
   currentStepRef: { current: 0 },
 };
