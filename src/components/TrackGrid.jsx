@@ -71,27 +71,27 @@ const TrackGrid = React.memo(function TrackGrid({
   const activeCount = useMemo(() => pattern.filter((x) => !!x).length, [pattern]);
 
   return (
-    <div className="mb-3 sm:mb-4 md:mb-5">
-      <div className="flex items-center justify-between mb-2 sm:mb-3">
+    <div className="mb-2 sm:mb-4 md:mb-5">
+      <div className="flex items-center justify-between mb-1 sm:mb-3">
         <div className="flex items-center gap-1.5 sm:gap-3">
-          <span className="text-xs sm:text-sm font-semibold text-neutral-700 min-w-[4rem]">{name}</span>
+          <span className="text-xs sm:text-sm font-semibold text-neutral-700 min-w-[3.5rem] sm:min-w-[4rem]">{name}</span>
           {/* Mixer inline controls */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 sm:gap-1">
             <button
               onClick={() => onMuteToggle(trackId)}
-              className={`text-[10px] w-6 h-6 rounded-md font-mono font-bold transition-all active:scale-95 ${
+              className={`text-[9px] sm:text-[10px] w-5 h-5 sm:w-6 sm:h-6 rounded font-mono font-bold transition-all active:scale-95 ${
                 mute
                   ? 'bg-red-500 text-white shadow-sm shadow-red-500/30'
-                  : darkMode ? 'bg-neutral-700/80 text-neutral-400 hover:bg-red-900/60 hover:text-red-400' : 'bg-neutral-100/80 text-neutral-400 hover:bg-red-50 hover:text-red-500'
+                  : darkMode ? 'bg-neutral-700/80 text-neutral-500 hover:bg-red-900/60 hover:text-red-400' : 'bg-neutral-100/60 text-neutral-400 hover:bg-red-50 hover:text-red-500'
               }`}
               title="Mute"
             >M</button>
             <button
               onClick={() => onSoloToggle(trackId)}
-              className={`text-[10px] w-6 h-6 rounded-md font-mono font-bold transition-all active:scale-95 ${
+              className={`text-[9px] sm:text-[10px] w-5 h-5 sm:w-6 sm:h-6 rounded font-mono font-bold transition-all active:scale-95 ${
                 solo
                   ? 'bg-amber-400 text-neutral-900 shadow-sm shadow-amber-400/30'
-                  : darkMode ? 'bg-neutral-700/80 text-neutral-400 hover:bg-amber-900/60 hover:text-amber-400' : 'bg-neutral-100/80 text-neutral-400 hover:bg-amber-50 hover:text-amber-600'
+                  : darkMode ? 'bg-neutral-700/80 text-neutral-500 hover:bg-amber-900/60 hover:text-amber-400' : 'bg-neutral-100/60 text-neutral-400 hover:bg-amber-50 hover:text-amber-600'
               }`}
               title="Solo"
             >S</button>
@@ -99,13 +99,13 @@ const TrackGrid = React.memo(function TrackGrid({
               type="range"
               min={0} max={100} value={volume}
               onChange={(e) => onVolumeChange(trackId, parseInt(e.target.value))}
-              className="w-12 sm:w-16 h-1 slider opacity-50 hover:opacity-100 transition-opacity"
+              className="hidden sm:block w-14 md:w-16 h-1 slider opacity-50 hover:opacity-100 transition-opacity"
               title={`Volume: ${volume}%`}
             />
             {onCopy && (
               <button
                 onClick={() => onCopy(trackId)}
-                className={`text-[10px] w-6 h-6 rounded-md font-mono font-bold transition-all active:scale-95 hidden sm:flex items-center justify-center ${
+                className={`text-[9px] sm:text-[10px] w-5 h-5 sm:w-6 sm:h-6 rounded font-mono font-bold transition-all active:scale-95 hidden sm:flex items-center justify-center ${
                   darkMode
                     ? 'bg-neutral-700/80 text-neutral-400 hover:bg-sky-900/60 hover:text-sky-400'
                     : 'bg-neutral-100/80 text-neutral-400 hover:bg-sky-50 hover:text-sky-600'
@@ -116,7 +116,7 @@ const TrackGrid = React.memo(function TrackGrid({
             {onPaste && hasClipboard && (
               <button
                 onClick={() => onPaste(trackId)}
-                className={`text-[10px] w-6 h-6 rounded-md font-mono font-bold transition-all active:scale-95 hidden sm:flex items-center justify-center ${
+                className={`text-[9px] sm:text-[10px] w-5 h-5 sm:w-6 sm:h-6 rounded font-mono font-bold transition-all active:scale-95 hidden sm:flex items-center justify-center ${
                   darkMode
                     ? 'bg-sky-800/80 text-sky-300 hover:bg-sky-700/80'
                     : 'bg-sky-100 text-sky-600 hover:bg-sky-200'
@@ -126,33 +126,15 @@ const TrackGrid = React.memo(function TrackGrid({
             )}
           </div>
         </div>
-        <span className="text-[9px] sm:text-xs text-neutral-500 font-mono bg-neutral-100/60 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-center min-w-[2rem] sm:min-w-[2.5rem] backdrop-blur-sm">
+        <span className="text-[9px] sm:text-xs text-neutral-400 font-mono tabular-nums">
           {activeCount}/{pattern.length}
         </span>
       </div>
 
-      {/* Mobile Bar Tabs */}
-      {isMobile && bars > 1 && (
-        <div className="flex gap-1 mb-3 lg:hidden">
-          {Array.from({ length: bars }, (_, barIndex) => (
-            <button
-              key={barIndex}
-              onClick={() => setActiveMobileBar(barIndex)}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 ${
-                activeMobileBar === barIndex
-                  ? 'bg-neutral-900 text-white shadow-lg'
-                  : 'bg-neutral-100/60 text-neutral-700 hover:bg-neutral-200/60'
-              }`}
-            >
-              Bar {barIndex + 1}
-            </button>
-          ))}
-        </div>
-      )}
 
        {/* Step Grid */}
        <div
-         className={`grid gap-1 sm:gap-1.5 mt-3 lg:mt-6 ${mute ? 'opacity-40' : ''}`}
+         className={`grid gap-1 sm:gap-1.5 mt-4 ${mute ? 'opacity-40' : ''}`}
          style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
          onTouchStart={(e) => {
            if (isMobile) {

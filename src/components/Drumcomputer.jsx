@@ -58,6 +58,14 @@ export default function Drumcomputer() {
   const isMobileDevice = deviceType !== 'desktop' && deviceType !== 'small-desktop';
   const [activeMobileBar, setActiveMobileBar] = useState(0);
   const [showTools, setShowTools] = useState(false);
+  const [showControls, setShowControls] = useState(() => {
+    // Collapsed by default on touch devices / small screens
+    const w = window.innerWidth;
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (w < 1024) return false;
+    if (isTouch) return false;
+    return true;
+  });
   const [isEditingBpm, setIsEditingBpm] = useState(false);
   const [tempBpmValue, setTempBpmValue] = useState(bpm);
 
@@ -406,7 +414,7 @@ export default function Drumcomputer() {
         {/* Transport + Controls — 3-row card */}
         <div className={`${cardClass} mb-3 sm:mb-4`}>
 
-          {/* Row 1: Play + Bars + Tools toggle */}
+          {/* Row 1: Play + Bars + Toggles */}
           <div className="flex items-center gap-2 sm:gap-3 mb-3">
             <button
               onClick={transport.handleTapTempo}
@@ -428,9 +436,9 @@ export default function Drumcomputer() {
               title="Start/Stop (Space)"
             >{scheduler.isPlaying ? '■ Stop' : '▶ Start'}</button>
 
-            <div className={`w-px h-5 shrink-0 ${dm ? 'bg-neutral-600/60' : 'bg-neutral-200/60'}`}></div>
-
-            <div className="flex items-center gap-1 shrink-0">
+            {/* Bars — hidden on small mobile, shown sm+ */}
+            <div className={`hidden sm:flex items-center gap-1 shrink-0`}>
+              <div className={`w-px h-5 mr-1 shrink-0 ${dm ? 'bg-neutral-600/60' : 'bg-neutral-200/60'}`}></div>
               <span className={`text-[10px] sm:text-xs mr-1 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Bars</span>
               {[1, 2, 3, 4].map(b => (
                 <button
@@ -445,18 +453,50 @@ export default function Drumcomputer() {
               ))}
             </div>
 
-            <button
-              onClick={() => setShowTools(t => !t)}
-              className={`ml-auto px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-200 shrink-0 ${
-                showTools
-                  ? dm ? 'bg-neutral-100 text-neutral-900 border-neutral-300' : 'bg-neutral-900 text-white border-neutral-700'
-                  : dm ? 'bg-neutral-700/60 text-neutral-300 border-neutral-600/40 hover:bg-neutral-600/60' : 'bg-neutral-100/60 text-neutral-600 border-neutral-200/40 hover:bg-neutral-200/60'
-              }`}
-            >{showTools ? '▲ Tools' : '▼ Tools'}</button>
+            {/* Right-side toggles */}
+            <div className="ml-auto flex items-center gap-1.5 shrink-0">
+              {/* ⚙ Controls toggle — always visible on mobile/tablet */}
+              {isMobileDevice && (
+                <button
+                  onClick={() => setShowControls(v => !v)}
+                  className={`w-8 h-8 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 flex items-center justify-center rounded-xl text-sm sm:text-xs font-semibold border transition-all duration-200 ${
+                    showControls
+                      ? dm ? 'bg-neutral-600 text-neutral-100 border-neutral-500' : 'bg-neutral-200 text-neutral-800 border-neutral-300'
+                      : dm ? 'bg-neutral-700/60 text-neutral-400 border-neutral-600/40 hover:bg-neutral-600/60' : 'bg-neutral-100/60 text-neutral-500 border-neutral-200/40 hover:bg-neutral-200/60'
+                  }`}
+                  title="BPM / Swing / Groove / Presets"
+                >⚙</button>
+              )}
+              <button
+                onClick={() => setShowTools(t => !t)}
+                className={`w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 flex items-center justify-center rounded-xl text-xs font-semibold border transition-all duration-200 ${
+                  showTools
+                    ? dm ? 'bg-neutral-100 text-neutral-900 border-neutral-300' : 'bg-neutral-900 text-white border-neutral-700'
+                    : dm ? 'bg-neutral-700/60 text-neutral-300 border-neutral-600/40 hover:bg-neutral-600/60' : 'bg-neutral-100/60 text-neutral-600 border-neutral-200/40 hover:bg-neutral-200/60'
+                }`}
+              ><span className="hidden sm:inline">{showTools ? '▲ Tools' : '▼ Tools'}</span><span className="sm:hidden">{showTools ? '▲' : '▼'}</span></button>
+            </div>
           </div>
 
-          {/* Row 2: BPM + Swing + Groove sliders */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 mb-3">
+          {/* Bars — mobile only, below play row */}
+          <div className="flex sm:hidden items-center gap-1 mb-1">
+            <span className={`text-[10px] mr-1 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Bars</span>
+            {[1, 2, 3, 4].map(b => (
+              <button
+                key={b}
+                onClick={() => setBars(b)}
+                className={`w-7 h-7 text-xs rounded-lg font-semibold transition-all duration-200 active:scale-95 ${
+                  bars === b
+                    ? dm ? 'bg-neutral-100 text-neutral-900' : 'bg-neutral-900 text-white shadow-sm'
+                    : dm ? 'bg-neutral-700/60 text-neutral-400 hover:bg-neutral-600/60' : 'bg-neutral-100/60 text-neutral-600 hover:bg-neutral-200/60'
+                }`}
+              >{b}</button>
+            ))}
+          </div>
+
+          {/* Row 2 + 3: Collapsible on mobile/tablet */}
+          {(!isMobileDevice || showControls) && (<>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 mb-3 mt-3">
             <div className="flex items-center gap-2">
               <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>BPM</span>
               <input
@@ -560,6 +600,7 @@ export default function Drumcomputer() {
               className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium transition-all duration-200 whitespace-nowrap shrink-0 border border-red-200/60 hover:bg-red-50/60 text-red-500"
             >Clear</button>
           </div>
+          </>)}
         </div>
 
         {/* Tools Panel — directly below transport, visible when open */}
@@ -658,6 +699,28 @@ export default function Drumcomputer() {
               </div>
             </div>
           </div>
+
+          {/* Global mobile bar selector — shown once, not per track */}
+          {isMobileDevice && bars > 1 && (
+            <div className="flex items-center gap-3 mb-3 lg:hidden">
+              <span className={`text-[10px] font-mono ${textSecondary}`}>Bar</span>
+              <div className="flex gap-1.5">
+                {Array.from({ length: bars }, (_, barIndex) => (
+                  <button
+                    key={barIndex}
+                    onClick={() => setActiveMobileBar(barIndex)}
+                    className={`w-6 h-6 rounded-full text-[10px] font-mono font-bold transition-all duration-150 ${
+                      activeMobileBar === barIndex
+                        ? dm ? 'bg-neutral-600 text-neutral-100' : 'bg-neutral-200 text-neutral-800'
+                        : dm ? 'text-neutral-500 hover:text-neutral-300' : 'text-neutral-400 hover:text-neutral-600'
+                    }`}
+                  >
+                    {barIndex + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {TRACKS.map(track => (
             <TrackGrid
