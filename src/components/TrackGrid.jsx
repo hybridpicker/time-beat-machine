@@ -91,7 +91,8 @@ const TrackGrid = React.memo(function TrackGrid({
     : pattern;
   const patternOffset = isMobile ? activeMobileBar * STEPS_PER_BAR : 0;
 
-  const activeCount = useMemo(() => pattern.filter((x) => !!x).length, [pattern]);
+  // Force re-render when activeMobileBar changes to show fresh data
+  const activeCount = useMemo(() => pattern.filter((x) => !!x).length, [pattern, activeMobileBar]);
 
   const dm = darkMode;
 
@@ -209,4 +210,34 @@ const TrackGrid = React.memo(function TrackGrid({
   );
 });
 
-export default TrackGrid;
+// Custom comparison function to force re-render when activeMobileBar or pattern changes
+function areEqual(prevProps, nextProps) {
+  if (prevProps.activeMobileBar !== nextProps.activeMobileBar) return false;
+  // Compare pattern arrays by value (not reference)
+  if (prevProps.pattern.length !== nextProps.pattern.length) return false;
+  if (!prevProps.pattern.every((val, i) => val === nextProps.pattern[i])) return false;
+  if (prevProps.isPlaying !== nextProps.isPlaying) return false;
+  if (prevProps.playhead !== nextProps.playhead) return false;
+  return (
+    prevProps.trackId === nextProps.trackId &&
+    prevProps.name === nextProps.name &&
+    prevProps.isMobileDevice === nextProps.isMobileDevice &&
+    prevProps.bars === nextProps.bars &&
+    prevProps.onToggleStep === nextProps.onToggleStep &&
+    prevProps.volume === nextProps.volume &&
+    prevProps.mute === nextProps.mute &&
+    prevProps.solo === nextProps.solo &&
+    prevProps.onVolumeChange === nextProps.onVolumeChange &&
+    prevProps.onMuteToggle === nextProps.onMuteToggle &&
+    prevProps.onSoloToggle === nextProps.onSoloToggle &&
+    prevProps.isDragging === nextProps.isDragging &&
+    prevProps.onDragStart === nextProps.onDragStart &&
+    prevProps.onDragEnter === nextProps.onDragEnter &&
+    prevProps.onCopy === nextProps.onCopy &&
+    prevProps.onPaste === nextProps.onPaste &&
+    prevProps.hasClipboard === nextProps.hasClipboard &&
+    prevProps.darkMode === nextProps.darkMode
+  );
+}
+
+export default React.memo(TrackGrid, areEqual);

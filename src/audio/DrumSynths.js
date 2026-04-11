@@ -198,25 +198,44 @@ export function triggerRimshot(ctx, dest, time, velocity = 1, params) {
   const v = velGain(velocity);
   const tune = getTune(params);
   const decay = getDecay(params);
-  const osc = ctx.createOscillator();
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(800 * tune, time);
-  const oscGain = ctx.createGain();
-  oscGain.gain.setValueAtTime(0.5 * v, time);
-  oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.03 * decay);
-  osc.connect(oscGain).connect(dest);
-  osc.start(time);
-  osc.stop(time + 0.05 * decay);
+
+  // Jazz-friendly side-stick: woody click, a little shell body, very little crack.
+  const clickOsc = ctx.createOscillator();
+  clickOsc.type = "triangle";
+  clickOsc.frequency.setValueAtTime(2100 * tune, time);
+  clickOsc.frequency.exponentialRampToValueAtTime(1250 * tune, time + 0.014 * decay);
+  const clickGain = ctx.createGain();
+  clickGain.gain.setValueAtTime(0.22 * v, time);
+  clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.018 * decay);
+  clickOsc.connect(clickGain).connect(dest);
+  clickOsc.start(time);
+  clickOsc.stop(time + 0.022 * decay);
+
+  const bodyOsc = ctx.createOscillator();
+  bodyOsc.type = "sine";
+  bodyOsc.frequency.setValueAtTime(420 * tune, time);
+  bodyOsc.frequency.exponentialRampToValueAtTime(280 * tune, time + 0.045 * decay);
+  const bodyGain = ctx.createGain();
+  bodyGain.gain.setValueAtTime(0.12 * v, time);
+  bodyGain.gain.exponentialRampToValueAtTime(0.001, time + 0.06 * decay);
+  bodyOsc.connect(bodyGain).connect(dest);
+  bodyOsc.start(time);
+  bodyOsc.stop(time + 0.07 * decay);
+
   const noise = noiseSource(ctx, 'short');
   const hp = ctx.createBiquadFilter();
   hp.type = "highpass";
-  hp.frequency.value = 2000 * tune;
+  hp.frequency.value = 1400 * tune;
+  const bp = ctx.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 2400 * tune;
+  bp.Q.value = 1.2;
   const noiseGain = ctx.createGain();
-  noiseGain.gain.setValueAtTime(0.4 * v, time);
-  noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.04 * decay);
-  noise.connect(hp).connect(noiseGain).connect(dest);
+  noiseGain.gain.setValueAtTime(0.1 * v, time);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.022 * decay);
+  noise.connect(hp).connect(bp).connect(noiseGain).connect(dest);
   noise.start(time);
-  noise.stop(time + 0.05 * decay);
+  noise.stop(time + 0.03 * decay);
 }
 
 // Map track IDs to trigger functions
