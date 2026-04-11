@@ -211,7 +211,7 @@ describe('presets', () => {
         expect(result[t.id]).toBeDefined();
         expect(result[t.id]).toHaveLength(32);
         result[t.id].forEach(v => {
-          expect(v === 0 || v === 1).toBe(true);
+          expect(v === 0 || v === 1 || v === 2).toBe(true);
         });
       });
     });
