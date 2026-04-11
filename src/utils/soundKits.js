@@ -14,7 +14,7 @@ export const SOUND_KITS = {
       clap: { tune: 0, decay: 1.0, tone: 0.58, texture: 0.66, punch: 0.58 },
       cymbal: { tune: 0, decay: 1.0, tone: 0.72, texture: 0.58, punch: 0.42 },
       tom: { tune: 0, decay: 1.0, tone: 0.54, texture: 0.3, punch: 0.58 },
-      rim: { tune: 0, decay: 1.0, tone: 0.56, texture: 0.38, punch: 0.38 },
+      rim: { tune: 0, decay: 1.0, tone: 0.38, texture: 0.48, punch: 0.38 },
     },
   },
   hiphop: {
@@ -41,12 +41,12 @@ export const SOUND_KITS = {
     voiceParams: {
       kick: { tune: -2, decay: 0.76, tone: 0.12, texture: 0.14, punch: 0.24 },
       snare: { tune: 1, decay: 0.78, tone: 0.42, texture: 0.24, punch: 0.26 },
-      hat: { tune: -3, decay: 0.72, tone: 0.22, texture: 0.12, punch: 0.18 },
-      openhat: { tune: -4, decay: 0.9, tone: 0.18, texture: 0.12, punch: 0.18 },
+      hat: { tune: -3, decay: 0.72, tone: 0.3, texture: 0.1, punch: 0.18 },
+      openhat: { tune: -4, decay: 0.88, tone: 0.24, texture: 0.1, punch: 0.18 },
       clap: { tune: 0, decay: 0.82, tone: 0.28, texture: 0.24, punch: 0.22 },
-      cymbal: { tune: -5, decay: 1.48, tone: 0.12, texture: 0.96, punch: 0.14 },
+      cymbal: { tune: -5, decay: 1.36, tone: 0.18, texture: 0.72, punch: 0.14 },
       tom: { tune: -1, decay: 0.86, tone: 0.24, texture: 0.14, punch: 0.26 },
-      rim: { tune: -2, decay: 0.76, tone: 0.12, texture: 0.08, punch: 0.12 },
+      rim: { tune: -2, decay: 0.72, tone: 0.16, texture: 0.14, punch: 0.12 },
     },
   },
 };

@@ -205,8 +205,8 @@ export function triggerCymbal(ctx, dest, time, velocity = 1, params) {
   gain.gain.exponentialRampToValueAtTime((0.1 + tone * 0.14) * v, time + 0.1 * decay);
   gain.gain.exponentialRampToValueAtTime(0.001, time + (0.95 + texture * 0.95) * decay);
   const shimmerGain = ctx.createGain();
-  shimmerGain.gain.setValueAtTime((0.06 + texture * 0.08) * v, time);
-  shimmerGain.gain.exponentialRampToValueAtTime(0.001, time + (0.55 + texture * 1.1) * decay);
+  shimmerGain.gain.setValueAtTime((0.025 + texture * 0.045) * v, time);
+  shimmerGain.gain.exponentialRampToValueAtTime(0.001, time + (0.35 + texture * 0.8) * decay);
   noise.connect(highpass).connect(bandpass).connect(gain).connect(dest);
   noise.connect(shimmerBandpass).connect(shimmerGain).connect(dest);
   noise.start(time);
@@ -214,14 +214,14 @@ export function triggerCymbal(ctx, dest, time, velocity = 1, params) {
 
   const bellOsc = ctx.createOscillator();
   bellOsc.type = tone < 0.35 ? 'triangle' : 'sine';
-  bellOsc.frequency.setValueAtTime((1050 + (1 - tone) * 550) * tune, time);
-  bellOsc.frequency.exponentialRampToValueAtTime((820 + (1 - tone) * 220) * tune, time + 0.22 * decay);
+  bellOsc.frequency.setValueAtTime((820 + (1 - tone) * 420) * tune, time);
+  bellOsc.frequency.exponentialRampToValueAtTime((660 + (1 - tone) * 160) * tune, time + 0.18 * decay);
   const bellGain = ctx.createGain();
-  bellGain.gain.setValueAtTime((0.025 + (1 - tone) * 0.035 + texture * 0.015) * v, time);
-  bellGain.gain.exponentialRampToValueAtTime(0.001, time + (0.28 + texture * 0.45) * decay);
+  bellGain.gain.setValueAtTime((0.008 + (1 - tone) * 0.018 + texture * 0.008) * v, time);
+  bellGain.gain.exponentialRampToValueAtTime(0.001, time + (0.18 + texture * 0.24) * decay);
   bellOsc.connect(bellGain).connect(dest);
   bellOsc.start(time);
-  bellOsc.stop(time + (0.35 + texture * 0.45) * decay);
+  bellOsc.stop(time + (0.22 + texture * 0.28) * decay);
 }
 
 export function triggerTom(ctx, dest, time, velocity = 1, params) {
@@ -251,11 +251,11 @@ export function triggerRimshot(ctx, dest, time, velocity = 1, params) {
 
   // Jazz-friendly side-stick: woody click, a little shell body, very little crack.
   const clickOsc = ctx.createOscillator();
-  clickOsc.type = "triangle";
-  clickOsc.frequency.setValueAtTime((1300 + tone * 1300) * tune, time);
-  clickOsc.frequency.exponentialRampToValueAtTime((850 + tone * 800) * tune, time + 0.014 * decay);
+  clickOsc.type = texture < 0.25 ? "sine" : "triangle";
+  clickOsc.frequency.setValueAtTime((820 + tone * 900) * tune, time);
+  clickOsc.frequency.exponentialRampToValueAtTime((520 + tone * 420) * tune, time + 0.014 * decay);
   const clickGain = ctx.createGain();
-  clickGain.gain.setValueAtTime((0.14 + tone * 0.16) * v, time);
+  clickGain.gain.setValueAtTime((0.08 + tone * 0.09) * v, time);
   clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.018 * decay);
   clickOsc.connect(clickGain).connect(dest);
   clickOsc.start(time);
@@ -281,7 +281,7 @@ export function triggerRimshot(ctx, dest, time, velocity = 1, params) {
   bp.frequency.value = (1600 + tone * 1400) * tune;
   bp.Q.value = 0.8 + texture * 1.3;
   const noiseGain = ctx.createGain();
-  noiseGain.gain.setValueAtTime((0.03 + texture * 0.16) * v, time);
+  noiseGain.gain.setValueAtTime((0.045 + texture * 0.12) * v, time);
   noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.022 * decay);
   noise.connect(hp).connect(bp).connect(noiseGain).connect(dest);
   noise.start(time);
