@@ -3,10 +3,10 @@ export const MAX_BARS = 4;
 
 export const emptyPattern = (bars) => Array(bars * STEPS_PER_BAR).fill(0);
 
-export function seed(indices, bars) {
+export function seed(indices, bars, value = 1) {
   const arr = emptyPattern(bars);
   for (let b = 0; b < bars; b++) {
-    indices.forEach((i) => (arr[b * STEPS_PER_BAR + i] = 1));
+    indices.forEach((i) => (arr[b * STEPS_PER_BAR + i] = value));
   }
   return arr;
 }
@@ -137,25 +137,25 @@ export const presets = {
   // ── Jazz Presets (set Swing 40–55% for authentic jazz feel) ──
   "Bebop": ({ bars }) => ({
     // Classic bebop ride pattern: 8th notes on ride, hi-hat on 2 & 4
-    // With Swing >= 40% this produces the characteristic triplet jazz feel
+    // With triplet feel + swing this lands closer to a real spang-a-lang pulse
     kick: seed([0, 8], bars),           // Feathered kick on beats 1 & 3
     snare: emptyPattern(bars),          // Jazz: minimal snare, comping with hands
-    hat: seed([4, 12], bars),           // Hi-hat on beats 2 & 4 (foot)
+    hat: seed([4, 12], bars, 2),        // Hi-hat on beats 2 & 4 (foot chick)
     openhat: emptyPattern(bars),
     clap: emptyPattern(bars),
-    cymbal: every(2, bars),             // Ride: all 8th notes → with Swing = jazz ride triplet feel
+    cymbal: mix(seed([0, 2, 4, 6, 8, 10, 12, 14], bars), seed([0, 6, 8, 14], bars, 2)),
     tom: emptyPattern(bars),
-    rim: seed([4, 12], bars),           // Cross-stick on 2 & 4 (light comping)
+    rim: seed([10], bars),              // Small comping answer
   }),
   "Jazz Modern": ({ bars }) => ({
     // Post-bop / modern jazz: open ride variations, displaced kicks, comping snare
-    kick: seed([0, 9, 13], bars),       // Offbeat kicks (Tony Williams / Jack DeJohnette style)
-    snare: seed([4, 10, 12], bars),     // Comping snare with ghost-note character
-    hat: seed([4, 12], bars),           // Hi-hat still on 2 & 4
+    kick: mix(seed([0, 9], bars), seed([13], bars, 2)),
+    snare: mix(seed([4, 10], bars), seed([12], bars, 2)),
+    hat: seed([4, 12], bars, 2),        // Hi-hat still on 2 & 4
     openhat: seed([6, 14], bars),       // Open hi-hat for texture
     clap: emptyPattern(bars),
-    cymbal: mix(every(4, bars), seed([2, 6, 10], bars)), // Ride: quarter notes + extra texture
-    tom: seed([7], bars),               // Tom accent on upbeat
+    cymbal: mix(mix(seed([0, 4, 8, 12], bars, 2), seed([2, 6, 10, 14], bars)), seed([11], bars)),
+    tom: seed([7], bars, 2),            // Tom accent on upbeat
     rim: seed([2, 14], bars),           // Rimshot comping
   }),
 };

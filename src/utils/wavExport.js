@@ -1,8 +1,9 @@
 import { TRACKS, STEPS_PER_BAR } from './patternHelpers';
 import { triggerMap } from '../audio/DrumSynths';
+import { getSwingOffset, getTrackTimingOffsetMs } from './timingFeel';
 
 export async function exportWav(state) {
-  const { patterns, bpm, swing, bars, mixer } = state;
+  const { patterns, bpm, swing, feelMode = 'sixteenth', humanize = 0, grooveOffset = 0, bars, mixer } = state;
   const totalSteps = bars * STEPS_PER_BAR;
   const sixteenth = (60 / bpm) / 4;
   const duration = totalSteps * sixteenth + 0.5; // extra tail for decay
@@ -30,9 +31,7 @@ export async function exportWav(state) {
 
   // Schedule all notes
   for (let step = 0; step < totalSteps; step++) {
-    const isOffbeat = step % 2 === 1;
-    const swingPct = (swing || 0) / 100;
-    const swingOffset = isOffbeat ? swingPct * sixteenth * 0.5 : 0;
+    const swingOffset = getSwingOffset(step, bpm, swing || 0, feelMode);
     const time = step * sixteenth + swingOffset;
 
     TRACKS.forEach(t => {
@@ -46,7 +45,8 @@ export async function exportWav(state) {
       if (hasSolo && !mx?.solo) return;
 
       const trigger = triggerMap[t.id];
-      if (trigger) trigger(offCtx, trackGains[t.id], time, val);
+      const trackOffsetMs = getTrackTimingOffsetMs(t.id, step, humanize, feelMode);
+      if (trigger) trigger(offCtx, trackGains[t.id], time + (grooveOffset + trackOffsetMs) / 1000, val);
     });
   }
 

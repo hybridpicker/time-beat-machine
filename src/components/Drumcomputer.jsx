@@ -12,6 +12,7 @@ import EffectsPanel from './EffectsPanel';
 import { autoSave, autoLoad, saveToSlot, loadFromUrlHash, getShareUrl } from '../utils/patternStorage';
 import { exportWav } from '../utils/wavExport';
 import useUndoRedo from '../hooks/useUndoRedo';
+import { FEEL_MODES } from '../utils/timingFeel';
 
 // Create audio engine singleton
 const audioEngine = createAudioEngine();
@@ -27,7 +28,7 @@ export default function Drumcomputer() {
     }
     const fromStorage = autoLoad();
     if (fromStorage) return fromStorage;
-    return { patterns: presets["Classic 1"]({ bars: 2 }), bpm: 100, swing: 0, bars: 2 };
+    return { patterns: presets["Classic 1"]({ bars: 2 }), bpm: 100, swing: 0, feelMode: 'sixteenth', humanize: 0, grooveOffset: 0, bars: 2 };
   }, []);
 
   // ── Dark Mode ──
@@ -42,7 +43,9 @@ export default function Drumcomputer() {
   const [bpm, setBpm] = useState(initialState.bpm);
   const [bars, setBars] = useState(initialState.bars);
   const [swing, setSwing] = useState(initialState.swing);
-  const [grooveOffset, setGrooveOffset] = useState(0);
+  const [feelMode, setFeelMode] = useState(initialState.feelMode || 'sixteenth');
+  const [humanize, setHumanize] = useState(initialState.humanize || 0);
+  const [grooveOffset, setGrooveOffset] = useState(initialState.grooveOffset || 0);
   const [einsClick, setEinsClick] = useState(false);
   const [deviceType, setDeviceType] = useState(() => {
     const width = window.innerWidth;
@@ -175,13 +178,15 @@ export default function Drumcomputer() {
 
   // Destructure stable scheduler callbacks with sc- prefix to avoid name collisions
   const {
-    setBpm: scSetBpm, setSwing: scSetSwing, setGrooveOffset: scSetGrooveOffset,
+    setBpm: scSetBpm, setSwing: scSetSwing, setFeelMode: scSetFeelMode, setHumanize: scSetHumanize, setGrooveOffset: scSetGrooveOffset,
     setEinsClick: scSetEinsClick, setBarsRef: scSetBarsRef, currentStepRef,
   } = scheduler;
 
   // Sync BPM/Swing/Bars to scheduler refs
   useEffect(() => { scSetBpm(bpm); }, [bpm, scSetBpm]);
   useEffect(() => { scSetSwing(swing); }, [swing, scSetSwing]);
+  useEffect(() => { scSetFeelMode(feelMode); }, [feelMode, scSetFeelMode]);
+  useEffect(() => { scSetHumanize(humanize); }, [humanize, scSetHumanize]);
   useEffect(() => { scSetGrooveOffset(grooveOffset); }, [grooveOffset, scSetGrooveOffset]);
   useEffect(() => { scSetEinsClick(einsClick); }, [einsClick, scSetEinsClick]);
   useEffect(() => { scSetBarsRef(bars); }, [bars, scSetBarsRef]);
@@ -276,6 +281,17 @@ export default function Drumcomputer() {
     const p = presets[name]({ bars });
     setPatterns(p);
     patternsRef.current = p;
+    if (name === 'Bebop') {
+      setSwing(52);
+      setFeelMode('triplet');
+      setHumanize(8);
+      setGrooveOffset(6);
+    } else if (name === 'Jazz Modern') {
+      setSwing(34);
+      setFeelMode('triplet');
+      setHumanize(14);
+      setGrooveOffset(10);
+    }
   }, [bars]);
 
   // ── Mixer Controls ──
@@ -293,29 +309,32 @@ export default function Drumcomputer() {
 
   // ── Auto-save on state change ──
   useEffect(() => {
-    autoSave({ patterns, bpm, swing, bars, mixer });
-  }, [patterns, bpm, swing, bars, mixer]);
+    autoSave({ patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer });
+  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer]);
 
   // ── Pattern Manager handlers ──
   const handleSaveSlot = useCallback((slotIndex, name) => {
-    saveToSlot(slotIndex, { name, patterns, bpm, swing, bars, mixer });
-  }, [patterns, bpm, swing, bars, mixer]);
+    saveToSlot(slotIndex, { name, patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer });
+  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer]);
 
   const handleLoadSlot = useCallback((data) => {
     if (data.patterns) { setPatterns(data.patterns); patternsRef.current = data.patterns; }
     if (data.bpm) setBpm(data.bpm);
     if (data.swing !== undefined) setSwing(data.swing);
+    if (data.feelMode) setFeelMode(data.feelMode);
+    if (data.humanize !== undefined) setHumanize(data.humanize);
+    if (data.grooveOffset !== undefined) setGrooveOffset(data.grooveOffset);
     if (data.bars) setBars(data.bars);
     if (data.mixer) setMixer(data.mixer);
   }, []);
 
   const handleShare = useCallback(() => {
-    return getShareUrl({ patterns, bpm, swing, bars });
-  }, [patterns, bpm, swing, bars]);
+    return getShareUrl({ patterns, bpm, swing, feelMode, humanize, grooveOffset, bars });
+  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, bars]);
 
   const handleExportWav = useCallback(() => {
-    return exportWav({ patterns, bpm, swing, bars, mixer });
-  }, [patterns, bpm, swing, bars, mixer]);
+    return exportWav({ patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer });
+  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer]);
 
   // ── Click-drag step entry ──
   const [isDragging, setIsDragging] = useState(false);
@@ -497,7 +516,7 @@ export default function Drumcomputer() {
 
           {/* Row 2 + 3: Collapsible on mobile/tablet */}
           {(!isMobileDevice || showControls) && (<>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 mb-3 mt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-3 mt-3">
             <div className="flex items-center gap-2">
               <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>BPM</span>
               <input
@@ -563,6 +582,24 @@ export default function Drumcomputer() {
               <span className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-900'}`}>{swing}%</span>
             </div>
             <div className="flex items-center gap-2">
+              <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Feel</span>
+              <div className="flex items-center gap-1.5">
+                {Object.entries(FEEL_MODES).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    onClick={() => setFeelMode(mode)}
+                    className={`px-2 py-1 rounded-md text-[10px] sm:text-xs font-medium border transition-all ${
+                      feelMode === mode
+                        ? dm ? 'bg-neutral-100 text-neutral-900 border-neutral-100' : 'bg-neutral-900 text-white border-neutral-900'
+                        : dm ? 'border-neutral-700 text-neutral-400 hover:border-neutral-600' : 'border-neutral-200 text-neutral-500 hover:border-neutral-300'
+                    }`}
+                    title={`${label} feel`}
+                    type="button"
+                  >{label}</button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
               <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Groove</span>
               <input
                 type="range" min={-100} max={100} value={grooveOffset}
@@ -581,6 +618,23 @@ export default function Drumcomputer() {
                     : dm ? 'border-neutral-700 text-neutral-400 hover:border-neutral-600' : 'border-neutral-200 text-neutral-500 hover:border-neutral-300'
                 }`}
               >1</button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-3">
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] sm:text-xs w-16 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Humanize</span>
+              <input
+                type="range" min={0} max={24} value={humanize}
+                onChange={(e) => setHumanize(parseInt(e.target.value))}
+                className="flex-1 slider"
+              />
+              <span className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-900'}`}>{humanize}ms</span>
+            </div>
+            <div className={`flex items-center text-[10px] sm:text-xs ${dm ? 'text-neutral-500' : 'text-neutral-500'}`}>
+              {feelMode === 'triplet'
+                ? 'Triplet feel swings the jazz offbeat eighths instead of generic 16th shuffle.'
+                : 'Sixteenth feel keeps the classic shuffle timing across offbeat 16ths.'}
             </div>
           </div>
 

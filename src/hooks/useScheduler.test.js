@@ -80,6 +80,12 @@ describe('useScheduler', () => {
     act(() => result.current.setSwing(30));
     expect(result.current.swingRef.current).toBe(30);
 
+    act(() => result.current.setFeelMode('triplet'));
+    expect(result.current.feelModeRef.current).toBe('triplet');
+
+    act(() => result.current.setHumanize(12));
+    expect(result.current.humanizeRef.current).toBe(12);
+
     act(() => result.current.setBarsRef(4));
     expect(result.current.barsRef.current).toBe(4);
   });

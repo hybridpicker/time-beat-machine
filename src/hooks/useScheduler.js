@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { STEPS_PER_BAR } from '../utils/patternHelpers';
 import { triggerMap } from '../audio/DrumSynths';
+import { getSwingOffset, getTrackTimingOffsetMs } from '../utils/timingFeel';
 
 export default function useScheduler(audioEngine, patternsRef, mixerRef, trainerHook, voiceParamsRef, metronomeRef) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -16,6 +17,8 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
 
   const bpmRef = useRef(100);
   const swingRef = useRef(0);
+  const feelModeRef = useRef('sixteenth');
+  const humanizeRef = useRef(0);
   const grooveOffsetRef = useRef(0); // ms, positive = laid back, negative = push
   const einsClickRef = useRef(false); // prominent downbeat click on beat 1, always on grid
   const barsRef = useRef(2);
@@ -23,15 +26,14 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
 
   const setBpm = useCallback((v) => { bpmRef.current = v; }, []);
   const setSwing = useCallback((v) => { swingRef.current = v; }, []);
+  const setFeelMode = useCallback((v) => { feelModeRef.current = v; }, []);
+  const setHumanize = useCallback((v) => { humanizeRef.current = v; }, []);
   const setGrooveOffset = useCallback((v) => { grooveOffsetRef.current = v; }, []);
   const setEinsClick = useCallback((v) => { einsClickRef.current = v; }, []);
   const setBarsRef = useCallback((v) => { barsRef.current = v; }, []);
 
   const swingOffsetForStep = useCallback((stepIndex) => {
-    const sixteenth = (60 / bpmRef.current) / 4;
-    const isOffbeat = stepIndex % 2 === 1;
-    const swingPct = swingRef.current / 100;
-    return isOffbeat ? swingPct * sixteenth * 0.5 : 0;
+    return getSwingOffset(stepIndex, bpmRef.current, swingRef.current, feelModeRef.current);
   }, []);
 
   const scheduler = useCallback(() => {
@@ -41,15 +43,13 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
     const sixteenth = secondsPerBeat / 4;
     const total = barsRef.current * STEPS_PER_BAR;
 
-    while (nextNoteTimeRef.current < ctx.currentTime + 0.12) {
+      while (nextNoteTimeRef.current < ctx.currentTime + 0.12) {
       const step = currentStepRef.current % total;
       const swingOffset = swingOffsetForStep(step);
       const t = nextNoteTimeRef.current + swingOffset;
-      // Drum hits are offset by grooveOffset (ms); metronome click stays on the grid
-      const drumTime = t + grooveOffsetRef.current / 1000;
 
       // Record scheduled drum time for accurate visual sync
-      scheduleTimesRef.current.push({ step, time: drumTime });
+      scheduleTimesRef.current.push({ step, time: t + grooveOffsetRef.current / 1000 });
       if (scheduleTimesRef.current.length > total + 8) {
         scheduleTimesRef.current = scheduleTimesRef.current.slice(-(total + 8));
       }
@@ -107,6 +107,8 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
           if (!dest) return;
           const trigger = triggerMap[trackId];
           const vp = voiceParamsRef?.current?.[trackId];
+          const trackOffsetMs = getTrackTimingOffsetMs(trackId, step, humanizeRef.current, feelModeRef.current);
+          const drumTime = t + (grooveOffsetRef.current + trackOffsetMs) / 1000;
           if (trigger) trigger(ctx, dest, drumTime, val, vp); // val: 1=normal, 2=accent
         });
       }
@@ -172,16 +174,18 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
     const ctx = audioEngine.getContext();
     if (!ctx) return;
     const total = barsRef.current * STEPS_PER_BAR;
-    const sixteenth = (60.0 / bpmRef.current) / 4;
     const stepNow = currentStepRef.current % total;
-    const stepsAhead = (stepIndex - stepNow + total) % total;
+    let stepsAhead = stepIndex - stepNow;
+    if (stepsAhead < 0) stepsAhead += total;
+    const sixteenth = (60.0 / bpmRef.current) / 4;
     const t = nextNoteTimeRef.current + stepsAhead * sixteenth + swingOffsetForStep(stepIndex);
 
     if (t >= ctx.currentTime && t <= ctx.currentTime + 0.12) {
       if (!trainerHook.isInGap()) {
         const dest = audioEngine.getTrackGain(trackId);
         const trigger = triggerMap[trackId];
-        if (dest && trigger) trigger(ctx, dest, t, 1);
+        const trackOffsetMs = getTrackTimingOffsetMs(trackId, stepIndex, humanizeRef.current, feelModeRef.current);
+        if (dest && trigger) trigger(ctx, dest, t + (grooveOffsetRef.current + trackOffsetMs) / 1000, 1);
       }
     }
   }, [audioEngine, trainerHook, swingOffsetForStep]);
@@ -196,8 +200,8 @@ export default function useScheduler(audioEngine, patternsRef, mixerRef, trainer
 
   return {
     isPlaying, uiStep, handleStart, handleStop, handleToggle, scheduleIfSoon,
-    bpmRef, swingRef, grooveOffsetRef, einsClickRef, barsRef,
-    setBpm, setSwing, setGrooveOffset, setEinsClick, setBarsRef,
+    bpmRef, swingRef, feelModeRef, humanizeRef, grooveOffsetRef, einsClickRef, barsRef,
+    setBpm, setSwing, setFeelMode, setHumanize, setGrooveOffset, setEinsClick, setBarsRef,
     currentStepRef,
   };
 }

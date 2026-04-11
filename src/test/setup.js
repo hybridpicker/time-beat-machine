@@ -137,6 +137,16 @@ let rafId = 0;
 globalThis.requestAnimationFrame = () => ++rafId;
 globalThis.cancelAnimationFrame = () => {};
 
+if (!globalThis.localStorage || typeof globalThis.localStorage.clear !== 'function') {
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem(key) { return store.has(key) ? store.get(key) : null; },
+    setItem(key, value) { store.set(key, String(value)); },
+    removeItem(key) { store.delete(key); },
+    clear() { store.clear(); },
+  };
+}
+
 // localStorage mock (happy-dom provides one, but ensure it's clean)
 beforeEach(() => {
   localStorage.clear();

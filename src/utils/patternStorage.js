@@ -14,6 +14,9 @@ export function saveToSlot(slotIndex, state) {
       patterns: state.patterns,
       bpm: state.bpm,
       swing: state.swing,
+      feelMode: state.feelMode,
+      humanize: state.humanize,
+      grooveOffset: state.grooveOffset,
       bars: state.bars,
       mixer: state.mixer,
       droneEnabled: state.droneEnabled,
@@ -65,6 +68,9 @@ export function autoSave(state) {
       patterns: state.patterns,
       bpm: state.bpm,
       swing: state.swing,
+      feelMode: state.feelMode,
+      humanize: state.humanize,
+      grooveOffset: state.grooveOffset,
       bars: state.bars,
       mixer: state.mixer,
       droneEnabled: state.droneEnabled,
@@ -91,6 +97,9 @@ export function encodeToUrl(state) {
     p: {},  // patterns (compressed: only non-zero steps)
     b: state.bpm,
     s: state.swing,
+    f: state.feelMode,
+    h: state.humanize,
+    g: state.grooveOffset,
     n: state.bars,
   };
   TRACKS.forEach(t => {
@@ -132,6 +141,9 @@ export function decodeFromUrl(hash) {
       patterns,
       bpm: compact.b || 100,
       swing: compact.s || 0,
+      feelMode: compact.f || 'sixteenth',
+      humanize: compact.h || 0,
+      grooveOffset: compact.g || 0,
       bars,
     };
   } catch {

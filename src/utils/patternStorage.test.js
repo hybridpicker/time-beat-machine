@@ -16,6 +16,9 @@ function makeState(overrides = {}) {
     patterns,
     bpm: 120,
     swing: 15,
+    feelMode: 'sixteenth',
+    humanize: 0,
+    grooveOffset: 0,
     bars: 2,
     mixer: {},
     droneEnabled: false,
@@ -57,6 +60,7 @@ describe('saveToSlot / loadFromSlot', () => {
     expect(loaded).toBeDefined();
     expect(loaded.bpm).toBe(120);
     expect(loaded.swing).toBe(15);
+    expect(loaded.feelMode).toBe('sixteenth');
     expect(loaded.bars).toBe(2);
     expect(loaded.patterns.kick).toEqual(state.patterns.kick);
   });
@@ -98,6 +102,7 @@ describe('autoSave / autoLoad', () => {
     const loaded = autoLoad();
     expect(loaded.bpm).toBe(140);
     expect(loaded.swing).toBe(30);
+    expect(loaded.feelMode).toBe('sixteenth');
     expect(loaded.patterns.kick).toEqual(state.patterns.kick);
   });
 
@@ -115,12 +120,15 @@ describe('autoSave / autoLoad', () => {
 
 describe('encodeToUrl / decodeFromUrl', () => {
   it('round-trips patterns and settings', () => {
-    const state = makeState({ bpm: 110, swing: 20 });
+    const state = makeState({ bpm: 110, swing: 20, feelMode: 'triplet', humanize: 12, grooveOffset: 9 });
     const encoded = encodeToUrl(state);
     const decoded = decodeFromUrl(encoded);
     expect(decoded).not.toBeNull();
     expect(decoded.bpm).toBe(110);
     expect(decoded.swing).toBe(20);
+    expect(decoded.feelMode).toBe('triplet');
+    expect(decoded.humanize).toBe(12);
+    expect(decoded.grooveOffset).toBe(9);
     expect(decoded.bars).toBe(2);
     expect(decoded.patterns.kick).toEqual(state.patterns.kick);
   });
