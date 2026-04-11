@@ -6,7 +6,7 @@ import { presets } from '../utils/patternHelpers';
 describe('GroovePresets', () => {
   const presetNames = Object.keys(presets);
 
-  it('renders all 8 preset buttons', () => {
+  it('renders all preset buttons', () => {
     render(<GroovePresets onLoadPreset={vi.fn()} onClear={vi.fn()} collapsed={false} />);
     presetNames.forEach(name => {
       expect(screen.getByText(name)).toBeInTheDocument();

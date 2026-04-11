@@ -6,6 +6,7 @@ import {
   getShareUrl, loadFromUrlHash,
 } from './patternStorage';
 import { TRACKS, emptyPattern, seed, every } from './patternHelpers';
+import { createVoiceParamsFromKit } from './soundKits';
 
 function makeState(overrides = {}) {
   const patterns = {};
@@ -19,8 +20,13 @@ function makeState(overrides = {}) {
     feelMode: 'sixteenth',
     humanize: 0,
     grooveOffset: 0,
+    soundKit: 'standard',
     bars: 2,
     mixer: {},
+    reverbMix: 8,
+    compThreshold: -12,
+    compRatio: 4,
+    voiceParams: createVoiceParamsFromKit('standard'),
     droneEnabled: false,
     droneNote: 33,
     ...overrides,
@@ -61,6 +67,7 @@ describe('saveToSlot / loadFromSlot', () => {
     expect(loaded.bpm).toBe(120);
     expect(loaded.swing).toBe(15);
     expect(loaded.feelMode).toBe('sixteenth');
+    expect(loaded.soundKit).toBe('standard');
     expect(loaded.bars).toBe(2);
     expect(loaded.patterns.kick).toEqual(state.patterns.kick);
   });
@@ -103,6 +110,7 @@ describe('autoSave / autoLoad', () => {
     expect(loaded.bpm).toBe(140);
     expect(loaded.swing).toBe(30);
     expect(loaded.feelMode).toBe('sixteenth');
+    expect(loaded.soundKit).toBe('standard');
     expect(loaded.patterns.kick).toEqual(state.patterns.kick);
   });
 
@@ -120,7 +128,7 @@ describe('autoSave / autoLoad', () => {
 
 describe('encodeToUrl / decodeFromUrl', () => {
   it('round-trips patterns and settings', () => {
-    const state = makeState({ bpm: 110, swing: 20, feelMode: 'triplet', humanize: 12, grooveOffset: 9 });
+    const state = makeState({ bpm: 110, swing: 20, feelMode: 'triplet', humanize: 12, grooveOffset: 9, soundKit: 'jazz', voiceParams: createVoiceParamsFromKit('jazz') });
     const encoded = encodeToUrl(state);
     const decoded = decodeFromUrl(encoded);
     expect(decoded).not.toBeNull();
@@ -129,6 +137,8 @@ describe('encodeToUrl / decodeFromUrl', () => {
     expect(decoded.feelMode).toBe('triplet');
     expect(decoded.humanize).toBe(12);
     expect(decoded.grooveOffset).toBe(9);
+    expect(decoded.soundKit).toBe('jazz');
+    expect(decoded.voiceParams.kick.tune).toBe(-2);
     expect(decoded.bars).toBe(2);
     expect(decoded.patterns.kick).toEqual(state.patterns.kick);
   });

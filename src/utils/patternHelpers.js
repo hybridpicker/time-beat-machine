@@ -134,6 +134,26 @@ export const presets = {
     tom: seed([4], bars),
     rim: seed([10], bars),
   }),
+  "Dilla Bounce": ({ bars }) => ({
+    kick: mix(seed([0, 7, 10], bars), seed([13], bars, 2)),
+    snare: mix(seed([4, 12], bars), seed([15], bars)),
+    hat: mix(seed([0, 2, 3, 6, 8, 10, 11, 14], bars), seed([15], bars, 2)),
+    openhat: seed([5, 13], bars),
+    clap: seed([4, 12], bars),
+    cymbal: emptyPattern(bars),
+    tom: emptyPattern(bars),
+    rim: seed([9], bars),
+  }),
+  "Dilla Ghost": ({ bars }) => ({
+    kick: mix(seed([0, 8], bars, 2), seed([3, 11, 14], bars)),
+    snare: mix(seed([4, 12], bars), seed([10], bars)),
+    hat: mix(seed([1, 2, 5, 6, 9, 10, 13, 14], bars), seed([3, 11, 15], bars, 2)),
+    openhat: seed([7], bars),
+    clap: seed([12], bars),
+    cymbal: emptyPattern(bars),
+    tom: seed([15], bars),
+    rim: seed([6], bars),
+  }),
   // ── Jazz Presets (set Swing 40–55% for authentic jazz feel) ──
   "Bebop": ({ bars }) => ({
     // Classic bebop ride pattern: 8th notes on ride, hi-hat on 2 & 4

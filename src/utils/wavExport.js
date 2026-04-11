@@ -3,7 +3,7 @@ import { triggerMap } from '../audio/DrumSynths';
 import { getSwingOffset, getTrackTimingOffsetMs } from './timingFeel';
 
 export async function exportWav(state) {
-  const { patterns, bpm, swing, feelMode = 'sixteenth', humanize = 0, grooveOffset = 0, bars, mixer } = state;
+  const { patterns, bpm, swing, feelMode = 'sixteenth', humanize = 0, grooveOffset = 0, bars, mixer, voiceParams } = state;
   const totalSteps = bars * STEPS_PER_BAR;
   const sixteenth = (60 / bpm) / 4;
   const duration = totalSteps * sixteenth + 0.5; // extra tail for decay
@@ -46,7 +46,8 @@ export async function exportWav(state) {
 
       const trigger = triggerMap[t.id];
       const trackOffsetMs = getTrackTimingOffsetMs(t.id, step, humanize, feelMode);
-      if (trigger) trigger(offCtx, trackGains[t.id], time + (grooveOffset + trackOffsetMs) / 1000, val);
+      const vp = voiceParams?.[t.id];
+      if (trigger) trigger(offCtx, trackGains[t.id], time + (grooveOffset + trackOffsetMs) / 1000, val, vp);
     });
   }
 

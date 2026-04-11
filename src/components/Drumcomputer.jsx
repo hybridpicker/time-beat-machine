@@ -13,6 +13,7 @@ import { autoSave, autoLoad, saveToSlot, loadFromUrlHash, getShareUrl } from '..
 import { exportWav } from '../utils/wavExport';
 import useUndoRedo from '../hooks/useUndoRedo';
 import { FEEL_MODES } from '../utils/timingFeel';
+import { SOUND_KITS, getKitSettings, getRecommendedKitForPreset } from '../utils/soundKits';
 
 // Create audio engine singleton
 const audioEngine = createAudioEngine();
@@ -20,15 +21,37 @@ const audioEngine = createAudioEngine();
 export default function Drumcomputer() {
   // ── Load initial state from URL hash or auto-save ──
   const initialState = useMemo(() => {
+    const standardKit = getKitSettings('standard');
     const fromUrl = loadFromUrlHash();
     if (fromUrl) {
+      const urlKit = getKitSettings(fromUrl.soundKit || 'standard');
       // Clear hash after loading
       window.history.replaceState(null, '', window.location.pathname);
-      return fromUrl;
+      return {
+        ...urlKit,
+        ...fromUrl,
+        voiceParams: fromUrl.voiceParams || urlKit.voiceParams,
+      };
     }
     const fromStorage = autoLoad();
-    if (fromStorage) return fromStorage;
-    return { patterns: presets["Classic 1"]({ bars: 2 }), bpm: 100, swing: 0, feelMode: 'sixteenth', humanize: 0, grooveOffset: 0, bars: 2 };
+    if (fromStorage) {
+      const storageKit = getKitSettings(fromStorage.soundKit || 'standard');
+      return {
+        ...storageKit,
+        ...fromStorage,
+        voiceParams: fromStorage.voiceParams || storageKit.voiceParams,
+      };
+    }
+    return {
+      patterns: presets["Classic 1"]({ bars: 2 }),
+      bpm: 100,
+      swing: 0,
+      feelMode: 'sixteenth',
+      humanize: 0,
+      grooveOffset: 0,
+      bars: 2,
+      ...standardKit,
+    };
   }, []);
 
   // ── Dark Mode ──
@@ -46,6 +69,7 @@ export default function Drumcomputer() {
   const [feelMode, setFeelMode] = useState(initialState.feelMode || 'sixteenth');
   const [humanize, setHumanize] = useState(initialState.humanize || 0);
   const [grooveOffset, setGrooveOffset] = useState(initialState.grooveOffset || 0);
+  const [soundKit, setSoundKit] = useState(initialState.soundKit || 'standard');
   const [einsClick, setEinsClick] = useState(false);
   const [deviceType, setDeviceType] = useState(() => {
     const width = window.innerWidth;
@@ -97,14 +121,10 @@ export default function Drumcomputer() {
   }, [mixer]);
 
   // ── Effects State ──
-  const [reverbMix, setReverbMix] = useState(0);
-  const [compThreshold, setCompThreshold] = useState(-12);
-  const [compRatio, setCompRatio] = useState(4);
-  const [voiceParams, setVoiceParams] = useState(() => {
-    const vp = {};
-    TRACKS.forEach(t => { vp[t.id] = { tune: 0, decay: 1.0 }; });
-    return vp;
-  });
+  const [reverbMix, setReverbMix] = useState(initialState.reverbMix ?? 0);
+  const [compThreshold, setCompThreshold] = useState(initialState.compThreshold ?? -12);
+  const [compRatio, setCompRatio] = useState(initialState.compRatio ?? 4);
+  const [voiceParams, setVoiceParams] = useState(() => initialState.voiceParams);
   const voiceParamsRef = useRef(voiceParams);
   useEffect(() => { voiceParamsRef.current = voiceParams; }, [voiceParams]);
 
@@ -118,6 +138,15 @@ export default function Drumcomputer() {
       ...prev,
       [trackId]: { ...prev[trackId], [param]: value },
     }));
+  }, []);
+
+  const applySoundKit = useCallback((kitId) => {
+    const settings = getKitSettings(kitId);
+    setSoundKit(settings.soundKit);
+    setVoiceParams(settings.voiceParams);
+    setReverbMix(settings.reverbMix);
+    setCompThreshold(settings.compThreshold);
+    setCompRatio(settings.compRatio);
   }, []);
 
   // ── Undo/Redo ──
@@ -281,6 +310,7 @@ export default function Drumcomputer() {
     const p = presets[name]({ bars });
     setPatterns(p);
     patternsRef.current = p;
+    applySoundKit(getRecommendedKitForPreset(name));
     if (name === 'Bebop') {
       setSwing(52);
       setFeelMode('triplet');
@@ -291,8 +321,28 @@ export default function Drumcomputer() {
       setFeelMode('triplet');
       setHumanize(14);
       setGrooveOffset(10);
+    } else if (name === 'Dilla Bounce') {
+      setSwing(18);
+      setFeelMode('sixteenth');
+      setHumanize(12);
+      setGrooveOffset(-4);
+    } else if (name === 'Dilla Ghost') {
+      setSwing(12);
+      setFeelMode('sixteenth');
+      setHumanize(16);
+      setGrooveOffset(4);
+    } else if (name === 'Trap' || name === 'New Jack') {
+      setSwing(8);
+      setFeelMode('sixteenth');
+      setHumanize(8);
+      setGrooveOffset(0);
+    } else {
+      setSwing(0);
+      setFeelMode('sixteenth');
+      setHumanize(0);
+      setGrooveOffset(0);
     }
-  }, [bars]);
+  }, [applySoundKit, bars]);
 
   // ── Mixer Controls ──
   const handleVolumeChange = useCallback((trackId, volume) => {
@@ -309,13 +359,13 @@ export default function Drumcomputer() {
 
   // ── Auto-save on state change ──
   useEffect(() => {
-    autoSave({ patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer });
-  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer]);
+    autoSave({ patterns, bpm, swing, feelMode, humanize, grooveOffset, soundKit, bars, mixer, reverbMix, compThreshold, compRatio, voiceParams });
+  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, soundKit, bars, mixer, reverbMix, compThreshold, compRatio, voiceParams]);
 
   // ── Pattern Manager handlers ──
   const handleSaveSlot = useCallback((slotIndex, name) => {
-    saveToSlot(slotIndex, { name, patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer });
-  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer]);
+    saveToSlot(slotIndex, { name, patterns, bpm, swing, feelMode, humanize, grooveOffset, soundKit, bars, mixer, reverbMix, compThreshold, compRatio, voiceParams });
+  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, soundKit, bars, mixer, reverbMix, compThreshold, compRatio, voiceParams]);
 
   const handleLoadSlot = useCallback((data) => {
     if (data.patterns) { setPatterns(data.patterns); patternsRef.current = data.patterns; }
@@ -324,17 +374,22 @@ export default function Drumcomputer() {
     if (data.feelMode) setFeelMode(data.feelMode);
     if (data.humanize !== undefined) setHumanize(data.humanize);
     if (data.grooveOffset !== undefined) setGrooveOffset(data.grooveOffset);
+    if (data.soundKit) applySoundKit(data.soundKit);
     if (data.bars) setBars(data.bars);
     if (data.mixer) setMixer(data.mixer);
-  }, []);
+    if (data.reverbMix !== undefined) setReverbMix(data.reverbMix);
+    if (data.compThreshold !== undefined) setCompThreshold(data.compThreshold);
+    if (data.compRatio !== undefined) setCompRatio(data.compRatio);
+    if (data.voiceParams) setVoiceParams(data.voiceParams);
+  }, [applySoundKit]);
 
   const handleShare = useCallback(() => {
-    return getShareUrl({ patterns, bpm, swing, feelMode, humanize, grooveOffset, bars });
-  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, bars]);
+    return getShareUrl({ patterns, bpm, swing, feelMode, humanize, grooveOffset, soundKit, bars, reverbMix, compThreshold, compRatio, voiceParams });
+  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, soundKit, bars, reverbMix, compThreshold, compRatio, voiceParams]);
 
   const handleExportWav = useCallback(() => {
-    return exportWav({ patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer });
-  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer]);
+    return exportWav({ patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer, voiceParams });
+  }, [patterns, bpm, swing, feelMode, humanize, grooveOffset, bars, mixer, voiceParams]);
 
   // ── Click-drag step entry ──
   const [isDragging, setIsDragging] = useState(false);
@@ -636,6 +691,22 @@ export default function Drumcomputer() {
                 ? 'Triplet feel swings the jazz offbeat eighths instead of generic 16th shuffle.'
                 : 'Sixteenth feel keeps the classic shuffle timing across offbeat 16ths.'}
             </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1 mb-2">
+            <span className={`text-[10px] sm:text-xs shrink-0 font-medium ${dm ? 'text-neutral-500' : 'text-neutral-500'}`}>Kit</span>
+            {Object.entries(SOUND_KITS).map(([kitId, kit]) => (
+              <button
+                key={kitId}
+                onClick={() => applySoundKit(kitId)}
+                className={`text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-md font-medium transition-all duration-200 whitespace-nowrap shrink-0 border ${
+                  soundKit === kitId
+                    ? dm ? 'bg-neutral-100 text-neutral-900 border-neutral-100' : 'bg-neutral-900 text-white border-neutral-900'
+                    : dm ? 'border-neutral-700 text-neutral-400 hover:border-neutral-600 hover:text-neutral-300' : 'border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:text-neutral-800'
+                }`}
+                type="button"
+              >{kit.label}</button>
+            ))}
           </div>
 
           {/* Row 3: Groove presets */}
