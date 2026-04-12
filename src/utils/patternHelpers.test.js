@@ -225,10 +225,9 @@ describe('TRAINER_PRESETS', () => {
     expect(Object.keys(TRAINER_PRESETS)).toHaveLength(6);
   });
 
-  it('each preset has label, icon, desc', () => {
+  it('each preset has label and desc', () => {
     Object.values(TRAINER_PRESETS).forEach(p => {
       expect(p).toHaveProperty('label');
-      expect(p).toHaveProperty('icon');
       expect(p).toHaveProperty('desc');
     });
   });

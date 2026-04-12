@@ -182,10 +182,10 @@ export const presets = {
 
 // Timing trainer preset configurations
 export const TRAINER_PRESETS = {
-  callResponse: { label: 'Call & Response', icon: '🎤', play: 2, silence: 2, desc: 'Listen, then keep the groove going' },
-  steadyGap: { label: 'Steady Gap', icon: '🕳️', play: 3, silence: 1, desc: 'Short gap — hold the groove' },
-  deepDive: { label: 'Deep Dive', icon: '🏊', play: 2, silence: 4, desc: 'Minimal reference, maximum independence' },
-  checkIn: { label: 'Check-In', icon: '✅', play: 1, silence: 3, desc: 'Minimal check-in, maximum inner clock' },
-  fadeAway: { label: 'Fade Away', icon: '📉', play: null, silence: null, desc: 'Less and less reference over time' },
-  custom: { label: 'Custom', icon: '⚙️', play: null, silence: null, desc: 'Set your own play / silence ratio' },
+  callResponse: { label: 'Call & Response', play: 2, silence: 2, desc: 'Listen, then keep the groove going' },
+  steadyGap: { label: 'Steady Gap', play: 3, silence: 1, desc: 'Short gap — hold the groove' },
+  deepDive: { label: 'Deep Dive', play: 2, silence: 4, desc: 'Minimal reference, maximum independence' },
+  checkIn: { label: 'Check-In', play: 1, silence: 3, desc: 'Minimal check-in, maximum inner clock' },
+  fadeAway: { label: 'Fade Away', play: null, silence: null, desc: 'Less and less reference over time' },
+  custom: { label: 'Custom', play: null, silence: null, desc: 'Set your own play / silence ratio' },
 };

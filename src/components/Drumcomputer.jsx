@@ -476,12 +476,12 @@ export default function Drumcomputer() {
                   dm ? 'border-neutral-700 text-neutral-400 hover:border-neutral-600' : 'border-neutral-200 text-neutral-500 hover:border-neutral-300'
                 }`}
                 title="Toggle dark mode (D)"
-              >{dm ? '☀' : '🌙'}</button>
+              >{dm ? 'Light' : 'Dark'}</button>
               {undoRedo.canUndo && (
-                <button onClick={handleUndo} className={`px-1.5 py-1 rounded text-[10px] font-mono ${dm ? 'bg-neutral-700/60 text-neutral-400' : 'bg-neutral-100/60 text-neutral-500'}`} title="Undo (Cmd+Z)">↩</button>
+                <button onClick={handleUndo} className={`px-1.5 py-1 rounded text-[10px] font-mono ${dm ? 'bg-neutral-700/60 text-neutral-400' : 'bg-neutral-100/60 text-neutral-500'}`} title="Undo (Cmd+Z)">Undo</button>
               )}
               {undoRedo.canRedo && (
-                <button onClick={handleRedo} className={`px-1.5 py-1 rounded text-[10px] font-mono ${dm ? 'bg-neutral-700/60 text-neutral-400' : 'bg-neutral-100/60 text-neutral-500'}`} title="Redo (Cmd+Shift+Z)">↪</button>
+                <button onClick={handleRedo} className={`px-1.5 py-1 rounded text-[10px] font-mono ${dm ? 'bg-neutral-700/60 text-neutral-400' : 'bg-neutral-100/60 text-neutral-500'}`} title="Redo (Cmd+Shift+Z)">Redo</button>
               )}
             </div>
           </div>
@@ -510,7 +510,7 @@ export default function Drumcomputer() {
                   : 'bg-indigo-600 text-white hover:bg-indigo-700'
               }`}
               title="Start/Stop (Space)"
-            >{scheduler.isPlaying ? '■ Stop' : '▶ Start'}</button>
+            >{scheduler.isPlaying ? 'Stop' : 'Start'}</button>
 
             {/* Bars — hidden on small mobile, shown sm+ */}
             <div className={`hidden sm:flex items-center gap-1 shrink-0`}>
@@ -530,26 +530,26 @@ export default function Drumcomputer() {
 
             {/* Right-side toggles */}
             <div className="ml-auto flex items-center gap-1.5 shrink-0">
-              {/* ⚙ Controls toggle — always visible on mobile/tablet */}
+              {/* Controls toggle — always visible on mobile/tablet */}
               {isMobileDevice && (
                 <button
                   onClick={() => setShowControls(v => !v)}
-                  className={`w-8 h-8 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 flex items-center justify-center rounded-md text-sm sm:text-xs font-semibold border transition-all duration-200 ${
+                  className={`px-2.5 py-1.5 flex items-center justify-center rounded-md text-xs font-semibold border transition-all duration-200 ${
                     showControls
                       ? dm ? 'bg-neutral-200 text-neutral-900 border-neutral-200' : 'bg-neutral-900 text-white border-neutral-900'
                       : dm ? 'border-neutral-700 text-neutral-400 hover:border-neutral-600' : 'border-neutral-200 text-neutral-500 hover:border-neutral-300'
                   }`}
                   title="BPM / Swing / Groove / Presets"
-                >⚙</button>
+                >Controls</button>
               )}
               <button
                 onClick={() => setShowTools(t => !t)}
-                className={`w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 flex items-center justify-center rounded-md text-xs font-semibold border transition-all duration-200 ${
+                className={`px-3 py-1.5 flex items-center justify-center rounded-md text-xs font-semibold border transition-all duration-200 ${
                   showTools
                     ? dm ? 'bg-neutral-100 text-neutral-900 border-neutral-100' : 'bg-neutral-900 text-white border-neutral-900'
                     : dm ? 'border-neutral-700 text-neutral-400 hover:border-neutral-600' : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
                 }`}
-              ><span className="hidden sm:inline">{showTools ? '▲ Tools' : '▼ Tools'}</span><span className="sm:hidden">{showTools ? '▲' : '▼'}</span></button>
+              >Tools</button>
             </div>
           </div>
 
@@ -666,7 +666,7 @@ export default function Drumcomputer() {
               </span>
               <button
                 onClick={() => setEinsClick(v => !v)}
-                title="Eins-Click: fester Downbeat auf der 1"
+                title="Downbeat lock on beat 1"
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 border transition-colors ${
                   einsClick
                     ? 'bg-indigo-600 border-indigo-600 text-white'
@@ -737,7 +737,7 @@ export default function Drumcomputer() {
                 isCurrentlyInSilence ? (dm ? 'border-amber-800/60' : 'border-amber-200') : (dm ? 'border-neutral-800' : 'border-neutral-200')
               }`}>
                 <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                  <span className={`text-xs sm:text-sm font-semibold ${sectionLabel}`}>Timing Trainer</span>
+                  <span className={sectionLabel}>Timing Trainer</span>
                   {trainerHook.trainerMode && (
                     <span className={`ml-auto text-[9px] sm:text-[10px] font-medium ${
                       isCurrentlyInSilence ? 'text-amber-600' : textSecondary
@@ -754,13 +754,14 @@ export default function Drumcomputer() {
                   onCustomSilenceChange={trainerHook.setCustomSilence}
                   statusBadge={trainerStatus}
                   collapsed={false}
+                  darkMode={darkMode}
                 />
               </div>
 
               {/* Patterns */}
               <div className={cardClass}>
                 <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                  <span className={`text-xs sm:text-sm font-semibold ${sectionLabel}`}>Patterns</span>
+                  <span className={sectionLabel}>Patterns</span>
                 </div>
                 <PatternManager
                   onSave={handleSaveSlot}
@@ -768,6 +769,7 @@ export default function Drumcomputer() {
                   onShare={handleShare}
                   onExport={handleExportWav}
                   collapsed={false}
+                  darkMode={darkMode}
                 />
               </div>
             </div>
@@ -775,7 +777,7 @@ export default function Drumcomputer() {
             {/* Effects — full width */}
             <div className={cardClass}>
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <span className={`text-xs sm:text-sm font-semibold ${sectionLabel}`}>Effects & Sound Design</span>
+                <span className={sectionLabel}>Effects & Sound Design</span>
               </div>
               <EffectsPanel
                 reverbMix={reverbMix}
@@ -787,6 +789,7 @@ export default function Drumcomputer() {
                 voiceParams={voiceParams}
                 onVoiceParamChange={handleVoiceParamChange}
                 collapsed={false}
+                darkMode={darkMode}
               />
             </div>
           </div>
@@ -798,10 +801,7 @@ export default function Drumcomputer() {
         }`}>
           <div className="flex items-center justify-between mb-4 sm:mb-5">
             <div className="flex items-center gap-2 sm:gap-3">
-              <h2 className={`text-xs sm:text-sm font-semibold ${sectionLabel}`}>
-                <span className="hidden sm:inline">Pattern Sequencer</span>
-                <span className="sm:hidden">Sequencer</span>
-              </h2>
+              <h2 className={sectionLabel}>Sequencer</h2>
             </div>
             <div className="flex items-center gap-2">
               {isCurrentlyInSilence ? (
@@ -813,10 +813,12 @@ export default function Drumcomputer() {
                   Listen
                 </span>
               ) : null}
-              <div className={`flex items-center gap-1.5 text-[10px] sm:text-xs ${textSecondary}`}>
-                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-500 rounded-full animate-pulse"></span>
-                <span className="hidden sm:inline">Playhead</span>
-              </div>
+              {scheduler.isPlaying && (
+                <div className={`flex items-center gap-1.5 text-[10px] sm:text-xs ${textSecondary}`}>
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+                  <span className="hidden sm:inline">Playhead</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -873,7 +875,7 @@ export default function Drumcomputer() {
 
           <div className={`mt-4 sm:mt-6 pt-4 sm:pt-6 border-t ${dm ? 'border-neutral-800' : 'border-neutral-100'}`}>
             <p className={`text-[10px] sm:text-[11px] ${textSecondary}`}>
-              <span className="hidden sm:inline">Click = On / Off — Tools (▼) → Timing Trainer (G) to practice with silence gaps</span>
+              <span className="hidden sm:inline">Click = On / Off — open Tools to access Timing Trainer (G) and practice with silence gaps</span>
               <span className="sm:hidden">Tap to toggle steps — Tools → Timing Trainer</span>
             </p>
           </div>

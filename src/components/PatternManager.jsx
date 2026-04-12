@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getSlots, saveToSlot, loadFromSlot, deleteSlot } from '../utils/patternStorage';
 
-export default function PatternManager({ onSave, onLoad, onShare, onExport, collapsed }) {
+export default function PatternManager({ onSave, onLoad, onShare, onExport, collapsed, darkMode }) {
   const [slots, setSlots] = useState(() => getSlots());
   const [showSlots, setShowSlots] = useState(false);
   const [slotMode, setSlotMode] = useState(null); // 'save' | 'load'
   const [feedback, setFeedback] = useState(null);
+  const dm = darkMode;
 
   const refreshSlots = () => setSlots(getSlots());
 
@@ -58,6 +59,10 @@ export default function PatternManager({ onSave, onLoad, onShare, onExport, coll
     });
   };
 
+  const btnClass = dm
+    ? 'text-[10px] sm:text-xs px-2 py-1.5 sm:py-2 rounded-lg bg-neutral-800/60 hover:bg-neutral-700/60 text-neutral-300 transition-all border border-neutral-700/40'
+    : 'text-[10px] sm:text-xs px-2 py-1.5 sm:py-2 rounded-lg bg-neutral-100/60 hover:bg-neutral-200/60 text-neutral-700 transition-all border border-neutral-200/40';
+
   return (
     <div className={`transition-all duration-300 overflow-hidden ${
       collapsed ? 'max-h-0 opacity-0 lg:max-h-none lg:opacity-100' : 'max-h-[32rem] opacity-100'
@@ -66,19 +71,19 @@ export default function PatternManager({ onSave, onLoad, onShare, onExport, coll
       <div className="grid grid-cols-2 gap-1 sm:gap-2 mb-2">
         <button
           onClick={() => { setShowSlots(true); setSlotMode('save'); refreshSlots(); }}
-          className="text-[10px] sm:text-xs px-2 py-1.5 sm:py-2 rounded-lg bg-neutral-100/60 hover:bg-neutral-200/60 text-neutral-700 transition-all border border-neutral-200/40"
+          className={btnClass}
         >Save</button>
         <button
           onClick={() => { setShowSlots(true); setSlotMode('load'); refreshSlots(); }}
-          className="text-[10px] sm:text-xs px-2 py-1.5 sm:py-2 rounded-lg bg-neutral-100/60 hover:bg-neutral-200/60 text-neutral-700 transition-all border border-neutral-200/40"
+          className={btnClass}
         >Load</button>
         <button
           onClick={handleShare}
-          className="text-[10px] sm:text-xs px-2 py-1.5 sm:py-2 rounded-lg bg-neutral-100/60 hover:bg-neutral-200/60 text-neutral-700 transition-all border border-neutral-200/40"
+          className={btnClass}
         >Share URL</button>
         <button
           onClick={handleExport}
-          className="text-[10px] sm:text-xs px-2 py-1.5 sm:py-2 rounded-lg bg-neutral-100/60 hover:bg-neutral-200/60 text-neutral-700 transition-all border border-neutral-200/40"
+          className={btnClass}
         >Export WAV</button>
       </div>
 
@@ -93,12 +98,12 @@ export default function PatternManager({ onSave, onLoad, onShare, onExport, coll
       {showSlots && (
         <div className="space-y-1">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] sm:text-[10px] text-neutral-500 font-medium uppercase tracking-wider">
+            <span className={`text-[9px] sm:text-[10px] font-medium uppercase tracking-wider ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>
               {slotMode === 'save' ? 'Save to slot' : 'Load from slot'}
             </span>
             <button
               onClick={() => { setShowSlots(false); setSlotMode(null); }}
-              className="text-[9px] sm:text-[10px] text-neutral-400 hover:text-neutral-600"
+              className={`text-[9px] sm:text-[10px] ${dm ? 'text-neutral-500 hover:text-neutral-300' : 'text-neutral-400 hover:text-neutral-600'}`}
             >Cancel</button>
           </div>
           <div className="grid grid-cols-4 gap-1">
@@ -108,8 +113,12 @@ export default function PatternManager({ onSave, onLoad, onShare, onExport, coll
                 onClick={() => handleSlotAction(idx)}
                 className={`relative text-[9px] sm:text-[10px] px-1 py-2 rounded-lg transition-all border ${
                   slot
-                    ? 'bg-neutral-200/60 text-neutral-800 border-neutral-300/40 hover:bg-neutral-300/60'
-                    : 'bg-neutral-50/40 text-neutral-400 border-neutral-200/30 hover:bg-neutral-100/40'
+                    ? dm
+                      ? 'bg-neutral-700/60 text-neutral-200 border-neutral-600/40 hover:bg-neutral-600/60'
+                      : 'bg-neutral-200/60 text-neutral-800 border-neutral-300/40 hover:bg-neutral-300/60'
+                    : dm
+                      ? 'bg-neutral-800/40 text-neutral-500 border-neutral-700/30 hover:bg-neutral-700/40'
+                      : 'bg-neutral-50/40 text-neutral-400 border-neutral-200/30 hover:bg-neutral-100/40'
                 }`}
               >
                 <span className="block font-mono font-bold">{idx + 1}</span>
@@ -134,7 +143,9 @@ export default function PatternManager({ onSave, onLoad, onShare, onExport, coll
       )}
 
       {!showSlots && (
-        <p className="text-[8px] sm:text-[10px] text-neutral-500 mt-1 bg-neutral-50/60 p-1.5 sm:p-2 rounded-lg">
+        <p className={`text-[8px] sm:text-[10px] mt-1 p-1.5 sm:p-2 rounded-lg ${
+          dm ? 'text-neutral-400 bg-neutral-800/40' : 'text-neutral-500 bg-neutral-50/60'
+        }`}>
           8 save slots, URL sharing, WAV export
         </p>
       )}
