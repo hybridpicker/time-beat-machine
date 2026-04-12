@@ -188,52 +188,43 @@ export function triggerCymbal(ctx, dest, time, velocity = 1, params) {
   const tone = getTone(params);
   const texture = getTexture(params);
 
-  // Stick-click: very short high-frequency noise burst (the "tick")
+  // Stick-click: short noise burst shaped like a ride "tick"
   const tick = noiseSource(ctx, 'short');
   const tickHp = ctx.createBiquadFilter();
   tickHp.type = 'highpass';
-  tickHp.frequency.value = (6000 + tone * 3000) * tune;
+  tickHp.frequency.value = (3500 + tone * 2000) * tune;
+  const tickLp = ctx.createBiquadFilter();
+  tickLp.type = 'lowpass';
+  tickLp.frequency.value = (9000 + tone * 2000) * tune;
   const tickGain = ctx.createGain();
-  tickGain.gain.setValueAtTime((0.25 + texture * 0.12) * v, time);
-  tickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.012);
-  tick.connect(tickHp).connect(tickGain).connect(dest);
+  tickGain.gain.setValueAtTime((0.18 + texture * 0.1) * v, time);
+  tickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.014);
+  tick.connect(tickHp).connect(tickLp).connect(tickGain).connect(dest);
   tick.start(time);
-  tick.stop(time + 0.018);
+  tick.stop(time + 0.02);
 
-  // Bell ping: single subtle sine — gives ride character without dominating
-  const bell = ctx.createOscillator();
-  bell.type = 'sine';
-  bell.frequency.value = (800 + tone * 500) * tune;
-  const bellDecay = (0.25 + (1 - tone) * 0.35 + texture * 0.2) * decay;
-  const bellGain = ctx.createGain();
-  bellGain.gain.setValueAtTime((0.04 + (1 - tone) * 0.03) * v, time);
-  bellGain.gain.exponentialRampToValueAtTime(0.001, time + bellDecay);
-  bell.connect(bellGain).connect(dest);
-  bell.start(time);
-  bell.stop(time + bellDecay + 0.01);
-
-  // Shimmer: bandpass noise for metallic sizzle
+  // Shimmer: bandpass noise — metallic sizzle layer
   const shimmer = noiseSource(ctx, 'medium');
   const shimmerBp = ctx.createBiquadFilter();
   shimmerBp.type = 'bandpass';
-  shimmerBp.frequency.value = (8000 + tone * 4000) * tune;
-  shimmerBp.Q.value = 0.4 + texture * 0.6;
+  shimmerBp.frequency.value = (7000 + tone * 3000) * tune;
+  shimmerBp.Q.value = 0.35 + texture * 0.4;
   const shimmerGain = ctx.createGain();
-  shimmerGain.gain.setValueAtTime((0.08 + texture * 0.1) * v, time);
-  shimmerGain.gain.exponentialRampToValueAtTime(0.001, time + (0.15 + texture * 0.25) * decay);
+  shimmerGain.gain.setValueAtTime((0.07 + texture * 0.08) * v, time);
+  shimmerGain.gain.exponentialRampToValueAtTime(0.001, time + (0.12 + texture * 0.22) * decay);
   shimmer.connect(shimmerBp).connect(shimmerGain).connect(dest);
   shimmer.start(time);
-  shimmer.stop(time + (0.2 + texture * 0.3) * decay);
+  shimmer.stop(time + (0.18 + texture * 0.28) * decay);
 
   // Wash: main cymbal body — highpass noise, long sustain
   const wash = noiseSource(ctx, 'long');
   const washHp = ctx.createBiquadFilter();
   washHp.type = 'highpass';
-  washHp.frequency.value = (3000 + tone * 2000) * tune;
+  washHp.frequency.value = (2500 + tone * 2000) * tune;
   washHp.Q.value = 0.3;
   const washGain = ctx.createGain();
-  washGain.gain.setValueAtTime((0.06 + texture * 0.1) * v, time);
-  washGain.gain.exponentialRampToValueAtTime((0.03 + texture * 0.06) * v, time + 0.1);
+  washGain.gain.setValueAtTime((0.07 + texture * 0.1) * v, time);
+  washGain.gain.exponentialRampToValueAtTime((0.035 + texture * 0.06) * v, time + 0.1);
   washGain.gain.exponentialRampToValueAtTime(0.001, time + (1.0 + texture * 1.2) * decay);
   wash.connect(washHp).connect(washGain).connect(dest);
   wash.start(time);
