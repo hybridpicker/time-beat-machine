@@ -188,57 +188,56 @@ export function triggerCymbal(ctx, dest, time, velocity = 1, params) {
   const tone = getTone(params);
   const texture = getTexture(params);
 
-  // Stick-click transient: the short "tick" of stick hitting the bow
+  // Stick-click: very short high-frequency noise burst (the "tick")
   const tick = noiseSource(ctx, 'short');
   const tickHp = ctx.createBiquadFilter();
   tickHp.type = 'highpass';
-  tickHp.frequency.value = (5000 + tone * 4000) * tune;
+  tickHp.frequency.value = (6000 + tone * 3000) * tune;
   const tickGain = ctx.createGain();
-  tickGain.gain.setValueAtTime((0.2 + texture * 0.15) * v, time);
-  tickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.015);
+  tickGain.gain.setValueAtTime((0.25 + texture * 0.12) * v, time);
+  tickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.012);
   tick.connect(tickHp).connect(tickGain).connect(dest);
   tick.start(time);
-  tick.stop(time + 0.022);
+  tick.stop(time + 0.018);
 
-  // Bell: three inharmonic oscillators for metallic ride-cymbal ping
-  // Low tone = darker/lower fundamental (ride), high tone = brighter (crash)
-  const bellFreq = (900 + tone * 600) * tune;
-  const bellDecay = (0.45 + texture * 0.7) * decay;
-  const bellBaseGain = (0.055 + (1 - tone) * 0.035) * v;
-  // Inharmonic ratios typical of metallic percussion
-  [
-    [1.0, 1.0, bellDecay],
-    [2.76, 0.38, bellDecay * 0.6],
-    [5.40, 0.12, bellDecay * 0.35],
-  ].forEach(([ratio, ampScale, dur]) => {
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = bellFreq * ratio;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(bellBaseGain * ampScale, time);
-    g.gain.exponentialRampToValueAtTime(0.001, time + dur);
-    osc.connect(g).connect(dest);
-    osc.start(time);
-    osc.stop(time + dur + 0.01);
-  });
+  // Bell ping: single subtle sine — gives ride character without dominating
+  const bell = ctx.createOscillator();
+  bell.type = 'sine';
+  bell.frequency.value = (800 + tone * 500) * tune;
+  const bellDecay = (0.25 + (1 - tone) * 0.35 + texture * 0.2) * decay;
+  const bellGain = ctx.createGain();
+  bellGain.gain.setValueAtTime((0.04 + (1 - tone) * 0.03) * v, time);
+  bellGain.gain.exponentialRampToValueAtTime(0.001, time + bellDecay);
+  bell.connect(bellGain).connect(dest);
+  bell.start(time);
+  bell.stop(time + bellDecay + 0.01);
 
-  // Wash: filtered noise for the cymbal body/sustain
-  const noise = noiseSource(ctx, 'long');
-  const hp = ctx.createBiquadFilter();
-  hp.type = 'highpass';
-  hp.frequency.value = (2800 + tone * 2200) * tune;
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = (6000 + tone * 3000) * tune;
-  bp.Q.value = 0.5 + texture * 1.0;
+  // Shimmer: bandpass noise for metallic sizzle
+  const shimmer = noiseSource(ctx, 'medium');
+  const shimmerBp = ctx.createBiquadFilter();
+  shimmerBp.type = 'bandpass';
+  shimmerBp.frequency.value = (8000 + tone * 4000) * tune;
+  shimmerBp.Q.value = 0.4 + texture * 0.6;
+  const shimmerGain = ctx.createGain();
+  shimmerGain.gain.setValueAtTime((0.08 + texture * 0.1) * v, time);
+  shimmerGain.gain.exponentialRampToValueAtTime(0.001, time + (0.15 + texture * 0.25) * decay);
+  shimmer.connect(shimmerBp).connect(shimmerGain).connect(dest);
+  shimmer.start(time);
+  shimmer.stop(time + (0.2 + texture * 0.3) * decay);
+
+  // Wash: main cymbal body — highpass noise, long sustain
+  const wash = noiseSource(ctx, 'long');
+  const washHp = ctx.createBiquadFilter();
+  washHp.type = 'highpass';
+  washHp.frequency.value = (3000 + tone * 2000) * tune;
+  washHp.Q.value = 0.3;
   const washGain = ctx.createGain();
-  const washLevel = (0.05 + texture * 0.12) * v;
-  washGain.gain.setValueAtTime(washLevel, time);
-  washGain.gain.exponentialRampToValueAtTime(washLevel * 0.6, time + 0.08);
-  washGain.gain.exponentialRampToValueAtTime(0.001, time + (1.0 + texture * 1.4) * decay);
-  noise.connect(hp).connect(bp).connect(washGain).connect(dest);
-  noise.start(time);
-  noise.stop(time + (1.2 + texture * 1.5) * decay);
+  washGain.gain.setValueAtTime((0.06 + texture * 0.1) * v, time);
+  washGain.gain.exponentialRampToValueAtTime((0.03 + texture * 0.06) * v, time + 0.1);
+  washGain.gain.exponentialRampToValueAtTime(0.001, time + (1.0 + texture * 1.2) * decay);
+  wash.connect(washHp).connect(washGain).connect(dest);
+  wash.start(time);
+  wash.stop(time + (1.2 + texture * 1.4) * decay);
 }
 
 export function triggerTom(ctx, dest, time, velocity = 1, params) {
