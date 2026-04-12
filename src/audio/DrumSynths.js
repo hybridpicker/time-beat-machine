@@ -187,41 +187,58 @@ export function triggerCymbal(ctx, dest, time, velocity = 1, params) {
   const decay = getDecay(params);
   const tone = getTone(params);
   const texture = getTexture(params);
-  const noise = noiseSource(ctx, 'long');
-  const highpass = ctx.createBiquadFilter();
-  highpass.type = "highpass";
-  highpass.frequency.value = (1800 + tone * 2600) * tune;
-  highpass.Q.value = 0.35 + texture * 0.4;
-  const bandpass = ctx.createBiquadFilter();
-  bandpass.type = "bandpass";
-  bandpass.frequency.value = (6200 + tone * 5200) * tune;
-  bandpass.Q.value = 1.2 + texture * 1.5;
-  const shimmerBandpass = ctx.createBiquadFilter();
-  shimmerBandpass.type = "bandpass";
-  shimmerBandpass.frequency.value = (3200 + (1 - tone) * 1800) * tune;
-  shimmerBandpass.Q.value = 0.7 + texture * 0.8;
-  const gain = ctx.createGain();
-  gain.gain.setValueAtTime((0.22 + texture * 0.26) * v, time);
-  gain.gain.exponentialRampToValueAtTime((0.1 + tone * 0.14) * v, time + 0.1 * decay);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + (0.95 + texture * 0.95) * decay);
-  const shimmerGain = ctx.createGain();
-  shimmerGain.gain.setValueAtTime((0.025 + texture * 0.045) * v, time);
-  shimmerGain.gain.exponentialRampToValueAtTime(0.001, time + (0.35 + texture * 0.8) * decay);
-  noise.connect(highpass).connect(bandpass).connect(gain).connect(dest);
-  noise.connect(shimmerBandpass).connect(shimmerGain).connect(dest);
-  noise.start(time);
-  noise.stop(time + (1.15 + texture * 1.1) * decay);
 
-  const bellOsc = ctx.createOscillator();
-  bellOsc.type = tone < 0.35 ? 'triangle' : 'sine';
-  bellOsc.frequency.setValueAtTime((820 + (1 - tone) * 420) * tune, time);
-  bellOsc.frequency.exponentialRampToValueAtTime((660 + (1 - tone) * 160) * tune, time + 0.18 * decay);
-  const bellGain = ctx.createGain();
-  bellGain.gain.setValueAtTime((0.008 + (1 - tone) * 0.018 + texture * 0.008) * v, time);
-  bellGain.gain.exponentialRampToValueAtTime(0.001, time + (0.18 + texture * 0.24) * decay);
-  bellOsc.connect(bellGain).connect(dest);
-  bellOsc.start(time);
-  bellOsc.stop(time + (0.22 + texture * 0.28) * decay);
+  // Stick-click transient: the short "tick" of stick hitting the bow
+  const tick = noiseSource(ctx, 'short');
+  const tickHp = ctx.createBiquadFilter();
+  tickHp.type = 'highpass';
+  tickHp.frequency.value = (5000 + tone * 4000) * tune;
+  const tickGain = ctx.createGain();
+  tickGain.gain.setValueAtTime((0.2 + texture * 0.15) * v, time);
+  tickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.015);
+  tick.connect(tickHp).connect(tickGain).connect(dest);
+  tick.start(time);
+  tick.stop(time + 0.022);
+
+  // Bell: three inharmonic oscillators for metallic ride-cymbal ping
+  // Low tone = darker/lower fundamental (ride), high tone = brighter (crash)
+  const bellFreq = (900 + tone * 600) * tune;
+  const bellDecay = (0.45 + texture * 0.7) * decay;
+  const bellBaseGain = (0.055 + (1 - tone) * 0.035) * v;
+  // Inharmonic ratios typical of metallic percussion
+  [
+    [1.0, 1.0, bellDecay],
+    [2.76, 0.38, bellDecay * 0.6],
+    [5.40, 0.12, bellDecay * 0.35],
+  ].forEach(([ratio, ampScale, dur]) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = bellFreq * ratio;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(bellBaseGain * ampScale, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+    osc.connect(g).connect(dest);
+    osc.start(time);
+    osc.stop(time + dur + 0.01);
+  });
+
+  // Wash: filtered noise for the cymbal body/sustain
+  const noise = noiseSource(ctx, 'long');
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = (2800 + tone * 2200) * tune;
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = (6000 + tone * 3000) * tune;
+  bp.Q.value = 0.5 + texture * 1.0;
+  const washGain = ctx.createGain();
+  const washLevel = (0.05 + texture * 0.12) * v;
+  washGain.gain.setValueAtTime(washLevel, time);
+  washGain.gain.exponentialRampToValueAtTime(washLevel * 0.6, time + 0.08);
+  washGain.gain.exponentialRampToValueAtTime(0.001, time + (1.0 + texture * 1.4) * decay);
+  noise.connect(hp).connect(bp).connect(washGain).connect(dest);
+  noise.start(time);
+  noise.stop(time + (1.2 + texture * 1.5) * decay);
 }
 
 export function triggerTom(ctx, dest, time, velocity = 1, params) {

@@ -44,7 +44,7 @@ export const SOUND_KITS = {
       hat: { tune: -3, decay: 0.72, tone: 0.3, texture: 0.1, punch: 0.18 },
       openhat: { tune: -4, decay: 0.88, tone: 0.24, texture: 0.1, punch: 0.18 },
       clap: { tune: 0, decay: 0.82, tone: 0.28, texture: 0.24, punch: 0.22 },
-      cymbal: { tune: -5, decay: 1.36, tone: 0.18, texture: 0.72, punch: 0.14 },
+      cymbal: { tune: -3, decay: 1.5, tone: 0.18, texture: 0.42, punch: 0.14 },
       tom: { tune: -1, decay: 0.86, tone: 0.24, texture: 0.14, punch: 0.26 },
       rim: { tune: -2, decay: 0.72, tone: 0.16, texture: 0.14, punch: 0.12 },
     },
