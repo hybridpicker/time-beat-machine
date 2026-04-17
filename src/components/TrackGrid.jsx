@@ -58,18 +58,11 @@ const StepButton = React.memo(function StepButton({
       aria-label={`${name} step ${actualIndex + 1} ${isActive ? 'active' : 'inactive'}`}
       type="button"
     >
-      {i % 4 === 0 && (
+      {isMobile && i % 4 === 0 && (
         <span className={`absolute -top-2 sm:-top-3 left-0 text-[8px] sm:text-[9px] font-mono font-medium pointer-events-none px-0.5 sm:px-1 rounded ${
           darkMode ? 'text-neutral-500 bg-neutral-900/60' : 'text-neutral-400 bg-white/60'
         }`}>
           {(isMobile ? i : actualIndex % STEPS_PER_BAR) + 1}
-        </span>
-      )}
-      {!isMobile && actualIndex % STEPS_PER_BAR === 0 && (
-        <span className={`absolute -top-6 left-0 text-[10px] font-mono font-medium pointer-events-none px-1.5 py-0.5 rounded border hidden lg:block ${
-          darkMode ? 'text-neutral-500 bg-neutral-900 border-neutral-700' : 'text-neutral-400 bg-white border-neutral-200'
-        }`}>
-          Bar {Math.floor(actualIndex / STEPS_PER_BAR) + 1}
         </span>
       )}
     </button>
@@ -95,30 +88,49 @@ const TrackGrid = React.memo(function TrackGrid({
   const activeCount = useMemo(() => pattern.filter((x) => !!x).length, [pattern, activeMobileBar]);
 
   const dm = darkMode;
+  const showDesktopRuler = !isMobile;
+  const controlButtonClass = `inline-flex h-5 sm:h-6 min-w-5 sm:min-w-6 items-center justify-center rounded-full border px-1.5 sm:px-2 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.18em] transition-colors ${
+    dm ? 'border-neutral-700 text-neutral-500 hover:text-neutral-200 hover:border-neutral-500' : 'border-neutral-200 text-neutral-400 hover:text-neutral-700 hover:border-neutral-300'
+  }`;
 
   return (
     <div className={`py-3 sm:py-4 border-b last:border-b-0 ${darkMode ? 'border-neutral-800' : 'border-neutral-100'}`}>
-      <div className="flex items-center justify-between mb-1 sm:mb-3">
-        <div className="flex items-center gap-1.5 sm:gap-3">
-          <span className={`text-xs font-medium min-w-[3.5rem] sm:min-w-[4rem] tracking-tight ${dm ? 'text-neutral-300' : 'text-neutral-600'}`}>{name}</span>
+      <div className="flex items-start justify-between gap-3 mb-3 sm:mb-4">
+        <div className="flex min-w-0 flex-col gap-1.5 sm:gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className={`text-xs font-medium min-w-[3.5rem] sm:min-w-[4rem] tracking-tight ${dm ? 'text-neutral-300' : 'text-neutral-600'}`}>{name}</span>
+            {mute && (
+              <span className={`rounded-full px-1.5 py-0.5 text-[8px] sm:text-[9px] font-mono uppercase tracking-[0.2em] ${
+                dm ? 'bg-red-950/50 text-red-400' : 'bg-red-50 text-red-500'
+              }`}>
+                Mute
+              </span>
+            )}
+            {solo && (
+              <span className={`rounded-full px-1.5 py-0.5 text-[8px] sm:text-[9px] font-mono uppercase tracking-[0.2em] ${
+                dm ? 'bg-amber-950/50 text-amber-400' : 'bg-amber-50 text-amber-600'
+              }`}>
+                Solo
+              </span>
+            )}
+          </div>
 
-          {/* M / S / C / P — plain text controls, no boxes */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <button
               onClick={() => onMuteToggle(trackId)}
-              className={`text-[9px] sm:text-[10px] font-mono transition-colors ${
+              className={`${controlButtonClass} ${
                 mute
-                  ? 'text-red-500'
-                  : dm ? 'text-neutral-600 hover:text-neutral-300' : 'text-neutral-400 hover:text-neutral-700'
+                  ? (dm ? 'border-red-500/60 bg-red-950/40 text-red-300' : 'border-red-200 bg-red-50 text-red-600')
+                  : ''
               }`}
               title="Mute"
             >m</button>
             <button
               onClick={() => onSoloToggle(trackId)}
-              className={`text-[9px] sm:text-[10px] font-mono transition-colors ${
+              className={`${controlButtonClass} ${
                 solo
-                  ? 'text-amber-500'
-                  : dm ? 'text-neutral-600 hover:text-neutral-300' : 'text-neutral-400 hover:text-neutral-700'
+                  ? (dm ? 'border-amber-500/60 bg-amber-950/40 text-amber-300' : 'border-amber-200 bg-amber-50 text-amber-600')
+                  : ''
               }`}
               title="Solo"
             >s</button>
@@ -126,37 +138,69 @@ const TrackGrid = React.memo(function TrackGrid({
               type="range"
               min={0} max={100} value={volume}
               onChange={(e) => onVolumeChange(trackId, parseInt(e.target.value))}
-              className="hidden sm:block w-12 md:w-14 h-px slider opacity-30 hover:opacity-70 transition-opacity"
+              className="hidden sm:block w-16 md:w-20 h-px slider opacity-40 hover:opacity-80 transition-opacity"
               title={`Volume: ${volume}%`}
             />
+            <span className={`hidden sm:inline text-[9px] font-mono tabular-nums uppercase tracking-[0.18em] ${dm ? 'text-neutral-600' : 'text-neutral-400'}`}>
+              {volume}%
+            </span>
             {onCopy && (
               <button
                 onClick={() => onCopy(trackId)}
-                className={`text-[9px] sm:text-[10px] font-mono transition-colors hidden sm:block ${
-                  dm ? 'text-neutral-600 hover:text-neutral-300' : 'text-neutral-400 hover:text-neutral-700'
-                }`}
+                className={`${controlButtonClass} hidden sm:inline-flex`}
                 title="Copy track pattern"
               >c</button>
             )}
             {onPaste && hasClipboard && (
               <button
                 onClick={() => onPaste(trackId)}
-                className={`text-[9px] sm:text-[10px] font-mono transition-colors hidden sm:block ${
-                  dm ? 'text-neutral-400' : 'text-neutral-600'
-                }`}
+                className={`${controlButtonClass} hidden sm:inline-flex`}
                 title="Paste copied pattern"
               >p</button>
             )}
           </div>
         </div>
-        <span className={`text-[9px] sm:text-xs font-mono tabular-nums ${dm ? 'text-neutral-600' : 'text-neutral-400'}`}>
+        <span className={`shrink-0 rounded-full border px-2 py-1 text-[9px] sm:text-xs font-mono tabular-nums ${dm ? 'border-neutral-800 text-neutral-500 bg-neutral-950/60' : 'border-neutral-200 text-neutral-400 bg-neutral-50'}`}>
           {activeCount}/{pattern.length}
         </span>
       </div>
 
+      {showDesktopRuler && (
+        <div
+          className="grid gap-1 sm:gap-1.5 mb-2 sm:mb-2.5"
+          style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
+          aria-hidden="true"
+        >
+          {currentBarPattern.map((_, i) => {
+            const actualIndex = patternOffset + i;
+            const isBeatMarker = actualIndex % 4 === 0;
+            const isBarMarker = actualIndex % STEPS_PER_BAR === 0;
+
+            return (
+              <div key={`ruler-${trackId}-${actualIndex}`} className="relative h-5 sm:h-6">
+                {isBeatMarker && (
+                  <span className={`absolute left-0 top-2 text-[8px] sm:text-[9px] font-mono font-medium ${
+                    dm ? 'text-neutral-600' : 'text-neutral-400'
+                  }`}>
+                    {(actualIndex % STEPS_PER_BAR) + 1}
+                  </span>
+                )}
+                {isBarMarker && bars > 1 && (
+                  <span className={`absolute left-0 top-0 text-[9px] sm:text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border ${
+                    dm ? 'text-neutral-500 bg-neutral-900 border-neutral-700' : 'text-neutral-400 bg-white border-neutral-200'
+                  }`}>
+                    Bar {Math.floor(actualIndex / STEPS_PER_BAR) + 1}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Step Grid */}
       <div
-        className={`grid gap-1 sm:gap-1.5 mt-4 ${mute ? 'opacity-30' : ''}`}
+        className={`grid gap-1 sm:gap-1.5 ${mute ? 'opacity-30' : ''}`}
         style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
         onTouchStart={(e) => {
           if (isMobile) {
