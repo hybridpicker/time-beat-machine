@@ -94,10 +94,10 @@ const TrackGrid = React.memo(function TrackGrid({
   }`;
 
   return (
-    <div className={`py-3 sm:py-4 border-b last:border-b-0 ${darkMode ? 'border-neutral-800' : 'border-neutral-100'}`}>
-      <div className="flex items-start justify-between gap-3 mb-3 sm:mb-4">
-        <div className="flex min-w-0 flex-col gap-1.5 sm:gap-2">
-          <div className="flex min-w-0 items-center gap-2">
+    <div className={`py-2.5 sm:py-3 border-b last:border-b-0 ${darkMode ? 'border-neutral-800' : 'border-neutral-100'}`}>
+      <div className="flex items-start justify-between gap-3 mb-2 sm:mb-2.5">
+        <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
             <span className={`text-xs font-medium min-w-[3.5rem] sm:min-w-[4rem] tracking-tight ${dm ? 'text-neutral-300' : 'text-neutral-600'}`}>{name}</span>
             {mute && (
               <span className={`rounded-full px-1.5 py-0.5 text-[8px] sm:text-[9px] font-mono uppercase tracking-[0.2em] ${
@@ -115,7 +115,7 @@ const TrackGrid = React.memo(function TrackGrid({
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => onMuteToggle(trackId)}
               className={`${controlButtonClass} ${
@@ -167,7 +167,7 @@ const TrackGrid = React.memo(function TrackGrid({
 
       {showDesktopRuler && (
         <div
-          className="grid gap-1 sm:gap-1.5 mb-2 sm:mb-2.5"
+          className="grid gap-1 sm:gap-1.5 mb-1.5 sm:mb-2"
           style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
           aria-hidden="true"
         >
