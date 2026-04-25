@@ -40,7 +40,7 @@ export const SOUND_KITS = {
     compRatio: 2,
     voiceParams: {
       kick: { character: 'acoustic', tune: -3, decay: 1.08, tone: 0.24, texture: 0.18, punch: 0.26 },
-      snare: { character: 'acoustic', tune: 0, decay: 1.18, tone: 0.48, texture: 0.42, punch: 0.24 },
+      snare: { character: 'acoustic', tune: 1, decay: 1.06, tone: 0.44, texture: 0.56, punch: 0.3 },
       hat: { character: 'acoustic', tune: -1, decay: 0.92, tone: 0.62, texture: 0.34, punch: 0.18 },
       openhat: { character: 'acoustic', tune: -2, decay: 1.18, tone: 0.58, texture: 0.36, punch: 0.16 },
       clap: { tune: 0, decay: 0.82, tone: 0.28, texture: 0.24, punch: 0.22 },

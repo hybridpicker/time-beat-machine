@@ -117,46 +117,62 @@ export function triggerSnare(ctx, dest, time, velocity = 1, params) {
   const decay = getDecay(params);
   const tone = getTone(params);
   const texture = getTexture(params);
+  const punch = getPunch(params);
 
   if (isAcoustic(params)) {
-    const body = ctx.createOscillator();
-    body.type = "triangle";
-    body.frequency.setValueAtTime((184 + tone * 54) * tune, time);
-    body.frequency.exponentialRampToValueAtTime((132 + tone * 24) * tune, time + 0.07 * decay);
-    const bodyGain = ctx.createGain();
-    bodyGain.gain.setValueAtTime((0.22 + (1 - texture) * 0.12) * v, time);
-    bodyGain.gain.exponentialRampToValueAtTime(0.001, time + (0.13 + tone * 0.05) * decay);
-    body.connect(bodyGain).connect(dest);
-    body.start(time);
-    body.stop(time + (0.18 + tone * 0.04) * decay);
+    const shell = ctx.createOscillator();
+    shell.type = "sine";
+    shell.frequency.setValueAtTime((172 + tone * 42) * tune, time);
+    shell.frequency.exponentialRampToValueAtTime((138 + tone * 18) * tune, time + 0.055 * decay);
+    const shellGain = ctx.createGain();
+    shellGain.gain.setValueAtTime((0.13 + (1 - texture) * 0.08) * v, time);
+    shellGain.gain.exponentialRampToValueAtTime(0.001, time + (0.11 + tone * 0.035) * decay);
+    shell.connect(shellGain).connect(dest);
+    shell.start(time);
+    shell.stop(time + (0.15 + tone * 0.035) * decay);
+
+    const stick = noiseSource(ctx, 'short');
+    const stickHp = ctx.createBiquadFilter();
+    stickHp.type = "highpass";
+    stickHp.frequency.value = (1200 + tone * 500) * tune;
+    const stickBp = ctx.createBiquadFilter();
+    stickBp.type = "bandpass";
+    stickBp.frequency.value = (2100 + punch * 900 + tone * 420) * tune;
+    stickBp.Q.value = 1.4;
+    const stickGain = ctx.createGain();
+    stickGain.gain.setValueAtTime((0.12 + punch * 0.04) * v, time);
+    stickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.012);
+    stick.connect(stickHp).connect(stickBp).connect(stickGain).connect(dest);
+    stick.start(time);
+    stick.stop(time + 0.018);
+
+    const wireCrack = noiseSource(ctx, 'short');
+    const crackHp = ctx.createBiquadFilter();
+    crackHp.type = "highpass";
+    crackHp.frequency.value = (1550 + tone * 550) * tune;
+    crackHp.Q.value = 0.2;
+    const crackGain = ctx.createGain();
+    crackGain.gain.setValueAtTime((0.18 + texture * 0.16) * v, time + 0.002);
+    crackGain.gain.exponentialRampToValueAtTime(0.001, time + 0.045 * decay);
+    wireCrack.connect(crackHp).connect(crackGain).connect(dest);
+    wireCrack.start(time + 0.002);
+    wireCrack.stop(time + 0.06 * decay);
 
     const wires = noiseSource(ctx, 'medium');
     const hp = ctx.createBiquadFilter();
     hp.type = "highpass";
-    hp.frequency.value = (1050 + tone * 550) * tune;
-    hp.Q.value = 0.25;
-    const bp = ctx.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.frequency.value = (2700 + texture * 1300) * tune;
-    bp.Q.value = 0.8 + texture * 0.8;
+    hp.frequency.value = (1800 + tone * 700) * tune;
+    hp.Q.value = 0.16;
+    const shelf = ctx.createBiquadFilter();
+    shelf.type = "highshelf";
+    shelf.frequency.value = 5200 * tune;
+    shelf.gain.value = -4 + texture * 2;
     const wireGain = ctx.createGain();
-    wireGain.gain.setValueAtTime((0.24 + texture * 0.28) * v, time);
-    wireGain.gain.exponentialRampToValueAtTime(0.001, time + (0.18 + texture * 0.12) * decay);
-    wires.connect(hp).connect(bp).connect(wireGain).connect(dest);
-    wires.start(time);
-    wires.stop(time + (0.24 + texture * 0.14) * decay);
-
-    const stick = noiseSource(ctx, 'short');
-    const stickBp = ctx.createBiquadFilter();
-    stickBp.type = "bandpass";
-    stickBp.frequency.value = (1850 + tone * 900) * tune;
-    stickBp.Q.value = 2.0;
-    const stickGain = ctx.createGain();
-    stickGain.gain.setValueAtTime((0.08 + texture * 0.04) * v, time);
-    stickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.014);
-    stick.connect(stickBp).connect(stickGain).connect(dest);
-    stick.start(time);
-    stick.stop(time + 0.02);
+    wireGain.gain.setValueAtTime((0.13 + texture * 0.2) * v, time + 0.014);
+    wireGain.gain.exponentialRampToValueAtTime(0.001, time + (0.16 + texture * 0.1) * decay);
+    wires.connect(hp).connect(shelf).connect(wireGain).connect(dest);
+    wires.start(time + 0.014);
+    wires.stop(time + (0.22 + texture * 0.12) * decay);
     return;
   }
 
