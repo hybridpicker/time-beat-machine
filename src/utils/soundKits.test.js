@@ -24,6 +24,7 @@ describe('soundKits', () => {
 
   it('recommends hip hop kit for Dilla presets and jazz kit for jazz presets', () => {
     expect(getRecommendedKitForPreset('Dilla Bounce')).toBe('hiphop');
+    expect(getRecommendedKitForPreset('Jazz Swing')).toBe('jazz');
     expect(getRecommendedKitForPreset('Bebop')).toBe('jazz');
     expect(getRecommendedKitForPreset('Classic 1')).toBe('standard');
   });

@@ -155,6 +155,17 @@ export const presets = {
     rim: seed([6], bars),
   }),
   // ── Jazz Presets (set Swing 40–55% for authentic jazz feel) ──
+  "Jazz Swing": ({ bars }) => ({
+    // Straight-ahead swing for standards, blues, and medium-up tunes
+    kick: seed([0, 4, 8, 12], bars),    // Feathered four-on-the-floor
+    snare: seed([10], bars),            // Light comping answer
+    hat: seed([4, 12], bars, 2),        // Hi-hat on beats 2 & 4
+    openhat: emptyPattern(bars),
+    clap: emptyPattern(bars),
+    cymbal: mix(seed([0, 4, 8, 12], bars), seed([2, 6, 10, 14], bars, 2)),
+    tom: emptyPattern(bars),
+    rim: seed([6, 14], bars),           // Small comping taps
+  }),
   "Bebop": ({ bars }) => ({
     // Classic bebop ride pattern: 8th notes on ride, hi-hat on 2 & 4
     // With triplet feel + swing this lands closer to a real spang-a-lang pulse

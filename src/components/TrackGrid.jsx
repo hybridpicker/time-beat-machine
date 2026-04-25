@@ -74,7 +74,7 @@ const TrackGrid = React.memo(function TrackGrid({
   isMobileDevice, bars, activeMobileBar, setActiveMobileBar,
   onToggleStep, volume, mute, solo, onVolumeChange, onMuteToggle, onSoloToggle,
   isDragging, onDragStart, onDragEnter,
-  onCopy, onPaste, hasClipboard, darkMode,
+  onCopy, onPaste, hasClipboard, darkMode, showRuler,
 }) {
   const displayPlayhead = isPlaying ? playhead : -1;
 
@@ -84,171 +84,170 @@ const TrackGrid = React.memo(function TrackGrid({
     : pattern;
   const patternOffset = isMobile ? activeMobileBar * STEPS_PER_BAR : 0;
 
-  // Force re-render when activeMobileBar changes to show fresh data
   const activeCount = useMemo(() => pattern.filter((x) => !!x).length, [pattern, activeMobileBar]);
 
   const dm = darkMode;
-  const showDesktopRuler = !isMobile;
-  const controlButtonClass = `inline-flex h-5 sm:h-6 min-w-5 sm:min-w-6 items-center justify-center rounded-full border px-1.5 sm:px-2 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.18em] transition-colors ${
-    dm ? 'border-neutral-700 text-neutral-500 hover:text-neutral-200 hover:border-neutral-500' : 'border-neutral-200 text-neutral-400 hover:text-neutral-700 hover:border-neutral-300'
+
+  const controlButtonClass = `inline-flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded text-[9px] sm:text-[10px] font-mono uppercase tracking-wide transition-colors ${
+    dm
+      ? 'text-neutral-600 hover:text-neutral-200 hover:bg-neutral-700'
+      : 'text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100'
   }`;
 
-  return (
-    <div className={`py-2.5 sm:py-3 border-b last:border-b-0 ${darkMode ? 'border-neutral-800' : 'border-neutral-100'}`}>
-      <div className="flex items-start justify-between gap-3 mb-2 sm:mb-2.5">
-        <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-            <span className={`text-xs font-medium min-w-[3.5rem] sm:min-w-[4rem] tracking-tight ${dm ? 'text-neutral-300' : 'text-neutral-600'}`}>{name}</span>
-            {mute && (
-              <span className={`rounded-full px-1.5 py-0.5 text-[8px] sm:text-[9px] font-mono uppercase tracking-[0.2em] ${
-                dm ? 'bg-red-950/50 text-red-400' : 'bg-red-50 text-red-500'
-              }`}>
-                Mute
-              </span>
-            )}
-            {solo && (
-              <span className={`rounded-full px-1.5 py-0.5 text-[8px] sm:text-[9px] font-mono uppercase tracking-[0.2em] ${
-                dm ? 'bg-amber-950/50 text-amber-400' : 'bg-amber-50 text-amber-600'
-              }`}>
-                Solo
-              </span>
-            )}
-          </div>
+  const stepGrid = (
+    <div
+      className={`grid gap-1 sm:gap-1.5 ${mute ? 'opacity-30' : ''}`}
+      style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
+      onTouchStart={(e) => {
+        if (isMobile) {
+          const touch = e.touches[0];
+          e.currentTarget.dataset.touchStartX = touch.clientX.toString();
+          e.currentTarget.dataset.touchStartY = touch.clientY.toString();
+        }
+      }}
+      onTouchEnd={(e) => {
+        if (isMobile && e.currentTarget.dataset.touchStartX) {
+          const startX = parseFloat(e.currentTarget.dataset.touchStartX);
+          const startY = parseFloat(e.currentTarget.dataset.touchStartY);
+          const endX = e.changedTouches[0].clientX;
+          const endY = e.changedTouches[0].clientY;
+          const deltaX = endX - startX;
+          const deltaY = endY - startY;
+          if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 30) {
+            if (deltaX > 0 && activeMobileBar > 0) setActiveMobileBar(activeMobileBar - 1);
+            else if (deltaX < 0 && activeMobileBar < bars - 1) setActiveMobileBar(activeMobileBar + 1);
+          }
+          delete e.currentTarget.dataset.touchStartX;
+          delete e.currentTarget.dataset.touchStartY;
+        }
+      }}
+    >
+      {currentBarPattern.map((value, i) => {
+        const actualIndex = patternOffset + i;
+        return (
+          <StepButton
+            key={`${trackId}-${actualIndex}`}
+            value={value}
+            isPlayhead={displayPlayhead === actualIndex}
+            isBeat={i % 4 === 0}
+            isBarStart={!isMobile && actualIndex % STEPS_PER_BAR === 0 && actualIndex > 0}
+            isMobile={isMobile}
+            patternLength={pattern.length}
+            darkMode={darkMode}
+            trackId={trackId}
+            actualIndex={actualIndex}
+            i={i}
+            name={name}
+            isDragging={isDragging}
+            onDragStart={onDragStart}
+            onDragEnter={onDragEnter}
+            onToggleStep={onToggleStep}
+          />
+        );
+      })}
+    </div>
+  );
 
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+  // Mobile layout — stacked
+  if (isMobile) {
+    return (
+      <div className={`py-2.5 border-b last:border-b-0 ${dm ? 'border-neutral-800' : 'border-neutral-100'}`}>
+        <div className="flex items-center gap-2 mb-2">
+          <span className={`text-xs font-medium w-16 shrink-0 tracking-tight ${dm ? 'text-neutral-300' : 'text-neutral-600'}`}>{name}</span>
+          <div className="flex items-center gap-1">
+            <button onClick={() => onMuteToggle(trackId)} className={`${controlButtonClass} ${mute ? (dm ? 'text-red-400' : 'text-red-500') : ''}`} title="Mute">m</button>
+            <button onClick={() => onSoloToggle(trackId)} className={`${controlButtonClass} ${solo ? (dm ? 'text-amber-400' : 'text-amber-500') : ''}`} title="Solo">s</button>
+          </div>
+          {(mute || solo) && (
+            <span className={`text-[8px] font-mono uppercase tracking-wider ${mute ? (dm ? 'text-red-400' : 'text-red-500') : (dm ? 'text-amber-400' : 'text-amber-500')}`}>
+              {mute ? 'muted' : 'solo'}
+            </span>
+          )}
+        </div>
+        {stepGrid}
+      </div>
+    );
+  }
+
+  // Desktop layout — side-by-side columns
+  return (
+    <div className={`border-b last:border-b-0 ${dm ? 'border-neutral-800' : 'border-neutral-100'}`}>
+      {/* Ruler — rendered once above the first track */}
+      {showRuler && (
+        <div className="flex gap-3 pt-1 pb-0.5" aria-hidden="true">
+          <div className="w-44 lg:w-52 shrink-0" />
+          <div
+            className="flex-1 grid gap-1 sm:gap-1.5"
+            style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
+          >
+            {currentBarPattern.map((_, i) => {
+              const actualIndex = patternOffset + i;
+              const isBeatMarker = actualIndex % 4 === 0;
+              const isBarMarker = actualIndex % STEPS_PER_BAR === 0;
+              return (
+                <div key={`ruler-${trackId}-${actualIndex}`} className="relative h-5">
+                  {isBarMarker && bars > 1 && (
+                    <span className={`absolute left-0 top-0 text-[8px] sm:text-[9px] font-mono font-semibold ${
+                      dm ? 'text-neutral-500' : 'text-neutral-400'
+                    }`}>
+                      B{Math.floor(actualIndex / STEPS_PER_BAR) + 1}
+                    </span>
+                  )}
+                  {isBeatMarker && !(isBarMarker && bars > 1) && (
+                    <span className={`absolute left-0 top-1.5 text-[8px] font-mono ${
+                      dm ? 'text-neutral-700' : 'text-neutral-300'
+                    }`}>
+                      {(actualIndex % STEPS_PER_BAR) + 1}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Track row */}
+      <div className="flex items-center gap-3 py-1.5 sm:py-2">
+        {/* Left column: track info + controls */}
+        <div className="w-44 lg:w-52 shrink-0 flex items-center gap-2">
+          <span className={`text-[11px] sm:text-xs font-medium w-14 sm:w-16 shrink-0 tracking-tight truncate ${dm ? 'text-neutral-300' : 'text-neutral-600'}`}>{name}</span>
+          <div className="flex items-center gap-0.5">
             <button
               onClick={() => onMuteToggle(trackId)}
-              className={`${controlButtonClass} ${
-                mute
-                  ? (dm ? 'border-red-500/60 bg-red-950/40 text-red-300' : 'border-red-200 bg-red-50 text-red-600')
-                  : ''
-              }`}
+              className={`${controlButtonClass} ${mute ? (dm ? 'bg-red-950/50 text-red-400' : 'bg-red-50 text-red-500') : ''}`}
               title="Mute"
             >m</button>
             <button
               onClick={() => onSoloToggle(trackId)}
-              className={`${controlButtonClass} ${
-                solo
-                  ? (dm ? 'border-amber-500/60 bg-amber-950/40 text-amber-300' : 'border-amber-200 bg-amber-50 text-amber-600')
-                  : ''
-              }`}
+              className={`${controlButtonClass} ${solo ? (dm ? 'bg-amber-950/50 text-amber-400' : 'bg-amber-50 text-amber-500') : ''}`}
               title="Solo"
             >s</button>
+            {onCopy && (
+              <button onClick={() => onCopy(trackId)} className={controlButtonClass} title="Copy track pattern">c</button>
+            )}
+            {onPaste && hasClipboard && (
+              <button onClick={() => onPaste(trackId)} className={controlButtonClass} title="Paste copied pattern">p</button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
             <input
               type="range"
               min={0} max={100} value={volume}
               onChange={(e) => onVolumeChange(trackId, parseInt(e.target.value))}
-              className="hidden sm:block w-16 md:w-20 h-px slider opacity-40 hover:opacity-80 transition-opacity"
+              className="flex-1 min-w-0 h-px slider opacity-30 hover:opacity-70 transition-opacity"
               title={`Volume: ${volume}%`}
             />
-            <span className={`hidden sm:inline text-[9px] font-mono tabular-nums uppercase tracking-[0.18em] ${dm ? 'text-neutral-600' : 'text-neutral-400'}`}>
-              {volume}%
+            <span className={`text-[9px] font-mono tabular-nums shrink-0 ${dm ? 'text-neutral-700' : 'text-neutral-300'}`}>
+              {activeCount}/{pattern.length}
             </span>
-            {onCopy && (
-              <button
-                onClick={() => onCopy(trackId)}
-                className={`${controlButtonClass} hidden sm:inline-flex`}
-                title="Copy track pattern"
-              >c</button>
-            )}
-            {onPaste && hasClipboard && (
-              <button
-                onClick={() => onPaste(trackId)}
-                className={`${controlButtonClass} hidden sm:inline-flex`}
-                title="Paste copied pattern"
-              >p</button>
-            )}
           </div>
         </div>
-        <span className={`shrink-0 rounded-full border px-2 py-1 text-[9px] sm:text-xs font-mono tabular-nums ${dm ? 'border-neutral-800 text-neutral-500 bg-neutral-950/60' : 'border-neutral-200 text-neutral-400 bg-neutral-50'}`}>
-          {activeCount}/{pattern.length}
-        </span>
-      </div>
 
-      {showDesktopRuler && (
-        <div
-          className="grid gap-1 sm:gap-1.5 mb-1.5 sm:mb-2"
-          style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
-          aria-hidden="true"
-        >
-          {currentBarPattern.map((_, i) => {
-            const actualIndex = patternOffset + i;
-            const isBeatMarker = actualIndex % 4 === 0;
-            const isBarMarker = actualIndex % STEPS_PER_BAR === 0;
-
-            return (
-              <div key={`ruler-${trackId}-${actualIndex}`} className="relative h-5 sm:h-6">
-                {isBeatMarker && (
-                  <span className={`absolute left-0 top-2 text-[8px] sm:text-[9px] font-mono font-medium ${
-                    dm ? 'text-neutral-600' : 'text-neutral-400'
-                  }`}>
-                    {(actualIndex % STEPS_PER_BAR) + 1}
-                  </span>
-                )}
-                {isBarMarker && bars > 1 && (
-                  <span className={`absolute left-0 top-0 text-[9px] sm:text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border ${
-                    dm ? 'text-neutral-500 bg-neutral-900 border-neutral-700' : 'text-neutral-400 bg-white border-neutral-200'
-                  }`}>
-                    Bar {Math.floor(actualIndex / STEPS_PER_BAR) + 1}
-                  </span>
-                )}
-              </div>
-            );
-          })}
+        {/* Right: step grid */}
+        <div className="flex-1 min-w-0">
+          {stepGrid}
         </div>
-      )}
-
-      {/* Step Grid */}
-      <div
-        className={`grid gap-1 sm:gap-1.5 ${mute ? 'opacity-30' : ''}`}
-        style={{ gridTemplateColumns: `repeat(${currentBarPattern.length}, minmax(0, 1fr))` }}
-        onTouchStart={(e) => {
-          if (isMobile) {
-            const touch = e.touches[0];
-            e.currentTarget.dataset.touchStartX = touch.clientX.toString();
-            e.currentTarget.dataset.touchStartY = touch.clientY.toString();
-          }
-        }}
-        onTouchEnd={(e) => {
-          if (isMobile && e.currentTarget.dataset.touchStartX) {
-            const startX = parseFloat(e.currentTarget.dataset.touchStartX);
-            const startY = parseFloat(e.currentTarget.dataset.touchStartY);
-            const endX = e.changedTouches[0].clientX;
-            const endY = e.changedTouches[0].clientY;
-            const deltaX = endX - startX;
-            const deltaY = endY - startY;
-            if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 30) {
-              if (deltaX > 0 && activeMobileBar > 0) setActiveMobileBar(activeMobileBar - 1);
-              else if (deltaX < 0 && activeMobileBar < bars - 1) setActiveMobileBar(activeMobileBar + 1);
-            }
-            delete e.currentTarget.dataset.touchStartX;
-            delete e.currentTarget.dataset.touchStartY;
-          }
-        }}
-      >
-        {currentBarPattern.map((value, i) => {
-          const actualIndex = patternOffset + i;
-          return (
-            <StepButton
-              key={`${trackId}-${actualIndex}`}
-              value={value}
-              isPlayhead={displayPlayhead === actualIndex}
-              isBeat={i % 4 === 0}
-              isBarStart={!isMobile && actualIndex % STEPS_PER_BAR === 0 && actualIndex > 0}
-              isMobile={isMobile}
-              patternLength={pattern.length}
-              darkMode={darkMode}
-              trackId={trackId}
-              actualIndex={actualIndex}
-              i={i}
-              name={name}
-              isDragging={isDragging}
-              onDragStart={onDragStart}
-              onDragEnter={onDragEnter}
-              onToggleStep={onToggleStep}
-            />
-          );
-        })}
       </div>
     </div>
   );
@@ -280,7 +279,8 @@ function areEqual(prevProps, nextProps) {
     prevProps.onCopy === nextProps.onCopy &&
     prevProps.onPaste === nextProps.onPaste &&
     prevProps.hasClipboard === nextProps.hasClipboard &&
-    prevProps.darkMode === nextProps.darkMode
+    prevProps.darkMode === nextProps.darkMode &&
+    prevProps.showRuler === nextProps.showRuler
   );
 }
 

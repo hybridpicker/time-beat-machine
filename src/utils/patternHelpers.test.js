@@ -199,8 +199,8 @@ describe('getNoteNameFromMidi', () => {
 describe('presets', () => {
   const presetNames = Object.keys(presets);
 
-  it('has 12 presets', () => {
-    expect(presetNames).toHaveLength(12);
+  it('has 13 presets', () => {
+    expect(presetNames).toHaveLength(13);
   });
 
   presetNames.forEach(name => {

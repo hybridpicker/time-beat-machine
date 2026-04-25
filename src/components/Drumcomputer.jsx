@@ -311,7 +311,12 @@ export default function Drumcomputer() {
     setPatterns(p);
     patternsRef.current = p;
     applySoundKit(getRecommendedKitForPreset(name));
-    if (name === 'Bebop') {
+    if (name === 'Jazz Swing') {
+      setSwing(48);
+      setFeelMode('triplet');
+      setHumanize(6);
+      setGrooveOffset(4);
+    } else if (name === 'Bebop') {
       setSwing(52);
       setFeelMode('triplet');
       setHumanize(8);
@@ -571,125 +576,128 @@ export default function Drumcomputer() {
 
           {/* Row 2 + 3: Collapsible on mobile/tablet */}
           {(!isMobileDevice || showControls) && (<>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-3 mt-3">
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>BPM</span>
-              <input
-                type="range" min={50} max={220} value={bpm}
-                onChange={(e) => setBpm(parseInt(e.target.value))}
-                className="flex-1 slider"
-              />
-              {isEditingBpm ? (
+          <div className={`border rounded-lg px-3 py-2.5 mb-3 mt-3 ${dm ? 'border-neutral-800 bg-neutral-900/50' : 'border-neutral-100 bg-neutral-50/50'}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-2.5">
+              {/* BPM */}
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] w-12 shrink-0 font-medium tracking-wide uppercase ${dm ? 'text-neutral-500' : 'text-neutral-400'}`}>BPM</span>
                 <input
-                  type="number"
-                  min={50}
-                  max={220}
-                  value={tempBpmValue}
-                  ref={(el) => {
-                    if (el && ('ontouchstart' in window)) {
-                      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-                    }
-                  }}
-                  onChange={(e) => setTempBpmValue(parseInt(e.target.value) || 0)}
-                  onBlur={() => {
-                    setIsEditingBpm(false);
-                    if (tempBpmValue >= 50 && tempBpmValue <= 220) {
-                      setBpm(tempBpmValue);
-                    } else {
-                      setTempBpmValue(bpm);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                  type="range" min={50} max={220} value={bpm}
+                  onChange={(e) => setBpm(parseInt(e.target.value))}
+                  className="flex-1 slider"
+                />
+                {isEditingBpm ? (
+                  <input
+                    type="number"
+                    min={50}
+                    max={220}
+                    value={tempBpmValue}
+                    ref={(el) => {
+                      if (el && ('ontouchstart' in window)) {
+                        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+                      }
+                    }}
+                    onChange={(e) => setTempBpmValue(parseInt(e.target.value) || 0)}
+                    onBlur={() => {
                       setIsEditingBpm(false);
                       if (tempBpmValue >= 50 && tempBpmValue <= 220) {
                         setBpm(tempBpmValue);
                       } else {
                         setTempBpmValue(bpm);
                       }
-                    } else if (e.key === 'Escape') {
-                      setIsEditingBpm(false);
-                      setTempBpmValue(bpm);
-                    }
-                  }}
-                  className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'bg-neutral-700 text-neutral-100 border-neutral-600' : 'bg-neutral-100 text-neutral-900 border-neutral-300'} border rounded px-1 py-0.5`}
-                  autoFocus
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setIsEditingBpm(false);
+                        if (tempBpmValue >= 50 && tempBpmValue <= 220) {
+                          setBpm(tempBpmValue);
+                        } else {
+                          setTempBpmValue(bpm);
+                        }
+                      } else if (e.key === 'Escape') {
+                        setIsEditingBpm(false);
+                        setTempBpmValue(bpm);
+                      }
+                    }}
+                    className={`font-mono text-xs font-semibold w-11 text-right shrink-0 ${dm ? 'bg-neutral-700 text-neutral-100 border-neutral-600' : 'bg-white text-neutral-900 border-neutral-200'} border rounded px-1 py-0.5`}
+                    autoFocus
+                  />
+                ) : (
+                  <span
+                    className={`font-mono text-xs font-semibold w-11 text-right shrink-0 cursor-pointer rounded px-1 py-0.5 ${dm ? 'text-neutral-200 hover:bg-neutral-700/50' : 'text-neutral-800 hover:bg-neutral-200/50'}`}
+                    onClick={() => { setIsEditingBpm(true); setTempBpmValue(bpm); }}
+                  >{bpm}</span>
+                )}
+              </div>
+
+              {/* Swing */}
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] w-12 shrink-0 font-medium tracking-wide uppercase ${dm ? 'text-neutral-500' : 'text-neutral-400'}`}>Swing</span>
+                <input
+                  type="range" min={0} max={60} value={swing}
+                  onChange={(e) => setSwing(parseInt(e.target.value))}
+                  className="flex-1 slider"
                 />
-              ) : (
-                <span 
-                  className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200 hover:text-neutral-100 hover:bg-neutral-700/50' : 'text-neutral-900 hover:text-neutral-900 hover:bg-neutral-200/50'} rounded px-1 py-0.5 cursor-pointer`}
-                  onClick={() => {
-                    setIsEditingBpm(true);
-                    setTempBpmValue(bpm);
-                  }}
-                >
-                  {bpm}
+                <span className={`font-mono text-xs font-semibold w-11 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-800'}`}>{swing}%</span>
+              </div>
+
+              {/* Feel */}
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] w-12 shrink-0 font-medium tracking-wide uppercase ${dm ? 'text-neutral-500' : 'text-neutral-400'}`}>Feel</span>
+                <div className="flex items-center gap-1">
+                  {Object.entries(FEEL_MODES).map(([mode, label]) => (
+                    <button
+                      key={mode}
+                      onClick={() => setFeelMode(mode)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                        feelMode === mode
+                          ? dm ? 'bg-neutral-100 text-neutral-900 border-neutral-100' : 'bg-neutral-900 text-white border-neutral-900'
+                          : dm ? 'border-neutral-700 text-neutral-500 hover:border-neutral-600' : 'border-neutral-200 text-neutral-500 hover:border-neutral-300'
+                      }`}
+                      title={`${label} feel`}
+                      type="button"
+                    >{label}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Groove */}
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] w-12 shrink-0 font-medium tracking-wide uppercase ${dm ? 'text-neutral-500' : 'text-neutral-400'}`}>Groove</span>
+                <input
+                  type="range" min={-100} max={100} value={grooveOffset}
+                  onChange={(e) => setGrooveOffset(parseInt(e.target.value))}
+                  className="flex-1 slider"
+                />
+                <span className={`font-mono text-xs font-semibold w-11 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-800'}`}>
+                  {grooveOffset === 0 ? '0ms' : grooveOffset > 0 ? `+${grooveOffset}` : `${grooveOffset}`}
                 </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Swing</span>
-              <input
-                type="range" min={0} max={60} value={swing}
-                onChange={(e) => setSwing(parseInt(e.target.value))}
-                className="flex-1 slider"
-              />
-              <span className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-900'}`}>{swing}%</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Feel</span>
-              <div className="flex items-center gap-1.5">
-                {Object.entries(FEEL_MODES).map(([mode, label]) => (
-                  <button
-                    key={mode}
-                    onClick={() => setFeelMode(mode)}
-                    className={`px-2 py-1 rounded-md text-[10px] sm:text-xs font-medium border transition-all ${
-                      feelMode === mode
-                        ? dm ? 'bg-neutral-100 text-neutral-900 border-neutral-100' : 'bg-neutral-900 text-white border-neutral-900'
-                        : dm ? 'border-neutral-700 text-neutral-400 hover:border-neutral-600' : 'border-neutral-200 text-neutral-500 hover:border-neutral-300'
-                    }`}
-                    title={`${label} feel`}
-                    type="button"
-                  >{label}</button>
-                ))}
+                <button
+                  onClick={() => setEinsClick(v => !v)}
+                  title="Downbeat lock on beat 1"
+                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 border transition-colors ${
+                    einsClick
+                      ? 'bg-indigo-600 border-indigo-600 text-white'
+                      : dm ? 'border-neutral-700 text-neutral-500 hover:border-neutral-600' : 'border-neutral-200 text-neutral-400 hover:border-neutral-300'
+                  }`}
+                >1</button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] sm:text-xs w-10 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Groove</span>
-              <input
-                type="range" min={-100} max={100} value={grooveOffset}
-                onChange={(e) => setGrooveOffset(parseInt(e.target.value))}
-                className="flex-1 slider"
-              />
-              <span className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-900'}`}>
-                {grooveOffset === 0 ? '0ms' : grooveOffset > 0 ? `+${grooveOffset}ms` : `${grooveOffset}ms`}
-              </span>
-              <button
-                onClick={() => setEinsClick(v => !v)}
-                title="Downbeat lock on beat 1"
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 border transition-colors ${
-                  einsClick
-                    ? 'bg-indigo-600 border-indigo-600 text-white'
-                    : dm ? 'border-neutral-700 text-neutral-400 hover:border-neutral-600' : 'border-neutral-200 text-neutral-500 hover:border-neutral-300'
-                }`}
-              >1</button>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-3">
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] sm:text-xs w-16 shrink-0 font-medium ${dm ? 'text-neutral-400' : 'text-neutral-500'}`}>Humanize</span>
-              <input
-                type="range" min={0} max={24} value={humanize}
-                onChange={(e) => setHumanize(parseInt(e.target.value))}
-                className="flex-1 slider"
-              />
-              <span className={`font-mono text-xs font-bold w-12 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-900'}`}>{humanize}ms</span>
-            </div>
-            <div className={`flex items-center text-[10px] sm:text-xs ${dm ? 'text-neutral-500' : 'text-neutral-500'}`}>
-              {feelMode === 'triplet'
-                ? 'Triplet feel swings the jazz offbeat eighths instead of generic 16th shuffle.'
-                : 'Sixteenth feel keeps the classic shuffle timing across offbeat 16ths.'}
+            {/* Humanize — secondary row */}
+            <div className={`mt-2 pt-2 border-t flex items-center gap-6 ${dm ? 'border-neutral-800' : 'border-neutral-100'}`}>
+              <div className="flex items-center gap-2 flex-1 max-w-xs">
+                <span className={`text-[10px] w-12 shrink-0 font-medium tracking-wide uppercase ${dm ? 'text-neutral-500' : 'text-neutral-400'}`}>Humanize</span>
+                <input
+                  type="range" min={0} max={24} value={humanize}
+                  onChange={(e) => setHumanize(parseInt(e.target.value))}
+                  className="flex-1 slider"
+                />
+                <span className={`font-mono text-xs font-semibold w-11 text-right shrink-0 ${dm ? 'text-neutral-200' : 'text-neutral-800'}`}>{humanize}ms</span>
+              </div>
+              <span className={`hidden sm:inline text-[10px] ${dm ? 'text-neutral-600' : 'text-neutral-400'}`}>
+                {feelMode === 'triplet' ? 'Triplet swing on offbeat eighths' : 'Classic 16th-note shuffle'}
+              </span>
             </div>
           </div>
 
@@ -799,25 +807,21 @@ export default function Drumcomputer() {
         <div className={`${dm ? 'bg-neutral-900' : 'bg-white'} border rounded-xl p-3 sm:p-4 md:p-6 transition-all duration-200 ${
           isCurrentlyInSilence ? (dm ? 'border-amber-800/60' : 'border-amber-200') : (dm ? 'border-neutral-800' : 'border-neutral-200')
         }`}>
-          <div className="flex items-center justify-between mb-4 sm:mb-5">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <h2 className={sectionLabel}>Sequencer</h2>
-            </div>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className={sectionLabel}>Pattern Sequencer</h2>
+            <div className="flex items-center gap-3">
               {isCurrentlyInSilence ? (
-                <span className={`text-[10px] sm:text-xs font-medium px-2 py-1 rounded border ${dm ? 'text-amber-500 border-amber-800/60' : 'text-amber-700 border-amber-200 bg-amber-50'}`}>
+                <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${dm ? 'text-amber-500 border-amber-800/60' : 'text-amber-700 border-amber-200 bg-amber-50'}`}>
                   Your Turn
                 </span>
               ) : trainerHook.trainerMode && scheduler.isPlaying ? (
-                <span className={`text-[10px] sm:text-xs ${textSecondary}`}>
-                  Listen
-                </span>
+                <span className={`text-[10px] ${textSecondary}`}>Listen</span>
               ) : null}
               {scheduler.isPlaying && (
-                <div className={`flex items-center gap-1.5 text-[10px] sm:text-xs ${textSecondary}`}>
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-500 rounded-full animate-pulse"></span>
-                  <span className="hidden sm:inline">Playhead</span>
-                </div>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span>
+                  <span className={`text-[10px] hidden sm:inline ${textSecondary}`}>Playing</span>
+                </span>
               )}
             </div>
           </div>
@@ -844,7 +848,7 @@ export default function Drumcomputer() {
             </div>
           )}
 
-          {TRACKS.map(track => (
+          {TRACKS.map((track, i) => (
             <TrackGrid
               key={track.id}
               trackId={track.id}
@@ -870,14 +874,17 @@ export default function Drumcomputer() {
               onPaste={pasteTrack}
               hasClipboard={!!clipboard}
               darkMode={darkMode}
+              showRuler={!isMobileDevice && i === 0}
             />
           ))}
 
-          <div className={`mt-4 sm:mt-6 pt-4 sm:pt-6 border-t ${dm ? 'border-neutral-800' : 'border-neutral-100'}`}>
-            <p className={`text-[10px] sm:text-[11px] ${textSecondary}`}>
-              <span className="hidden sm:inline">Click = On / Off — open Tools to access Timing Trainer (G) and practice with silence gaps</span>
-              <span className="sm:hidden">Tap to toggle steps — Tools → Timing Trainer</span>
-            </p>
+          <div className={`mt-3 pt-3 border-t flex items-center gap-4 ${dm ? 'border-neutral-800' : 'border-neutral-100'}`}>
+            <span className={`text-[10px] ${textSecondary}`}>
+              <span className="hidden sm:inline">Click or drag to paint steps</span>
+              <span className="sm:hidden">Tap steps to toggle</span>
+            </span>
+            <span className={`hidden sm:inline text-[10px] ${dm ? 'text-neutral-700' : 'text-neutral-300'}`}>·</span>
+            <span className={`hidden sm:inline text-[10px] ${textSecondary}`}>Tools → Timing Trainer (G)</span>
           </div>
         </div>
 

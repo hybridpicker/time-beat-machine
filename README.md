@@ -52,8 +52,9 @@ The sequencer dims and the background shifts during silence — a clear visual c
 | Tom | Sine sweep, lower frequency |
 | Rimshot | Short click + noise |
 
-**10 groove presets** including two jazz-specific patterns:
+**13 groove presets** including three jazz-specific patterns:
 
+- **Jazz Swing** — straight-ahead ride pattern for standards, Solar, and jazz blues, with feathered kick and hi-hat on 2&4.
 - **Bebop** — classic ride cymbal pattern (8th notes + hi-hat on 2&4). Set Swing 40–55% for the authentic triplet feel.
 - **Jazz Modern** — post-bop displaced kicks, comping snare, open texture (Tony Williams / Jack DeJohnette style)
 
