@@ -138,7 +138,8 @@ describe('encodeToUrl / decodeFromUrl', () => {
     expect(decoded.humanize).toBe(12);
     expect(decoded.grooveOffset).toBe(9);
     expect(decoded.soundKit).toBe('jazz');
-    expect(decoded.voiceParams.kick.tune).toBe(-2);
+    expect(decoded.voiceParams.kick.tune).toBe(state.voiceParams.kick.tune);
+    expect(decoded.voiceParams.kick.character).toBe('acoustic');
     expect(decoded.bars).toBe(2);
     expect(decoded.patterns.kick).toEqual(state.patterns.kick);
   });

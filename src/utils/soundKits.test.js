@@ -10,6 +10,8 @@ describe('soundKits', () => {
     const jazz = createVoiceParamsFromKit('jazz');
     expect(jazz.cymbal.decay).toBeGreaterThan(1);
     expect(jazz.kick.tune).toBeLessThan(0);
+    expect(jazz.kick.character).toBe('acoustic');
+    expect(jazz.cymbal.character).toBe('acoustic');
   });
 
   it('returns full settings for a kit', () => {

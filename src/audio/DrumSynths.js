@@ -38,6 +38,11 @@ export function getDecay(params) { return params?.decay ?? 1.0; }
 export function getTone(params) { return params?.tone ?? 0.5; }
 export function getTexture(params) { return params?.texture ?? 0.5; }
 export function getPunch(params) { return params?.punch ?? 0.5; }
+export function getCharacter(params) { return params?.character || 'synthetic'; }
+
+function isAcoustic(params) {
+  return getCharacter(params) === 'acoustic';
+}
 
 export function triggerKick(ctx, dest, time, velocity = 1, params) {
   const v = velGain(velocity);
@@ -45,6 +50,44 @@ export function triggerKick(ctx, dest, time, velocity = 1, params) {
   const decay = getDecay(params);
   const tone = getTone(params);
   const punch = getPunch(params);
+
+  if (isAcoustic(params)) {
+    const shell = ctx.createOscillator();
+    const shellGain = ctx.createGain();
+    shell.type = "sine";
+    shell.frequency.setValueAtTime((78 + tone * 18) * tune, time);
+    shell.frequency.exponentialRampToValueAtTime((48 + tone * 10) * tune, time + 0.11 * decay);
+    shellGain.gain.setValueAtTime((0.52 + punch * 0.16) * v, time);
+    shellGain.gain.exponentialRampToValueAtTime(0.001, time + (0.26 + tone * 0.08) * decay);
+    shell.connect(shellGain).connect(dest);
+    shell.start(time);
+    shell.stop(time + (0.32 + tone * 0.08) * decay);
+
+    const head = ctx.createOscillator();
+    const headGain = ctx.createGain();
+    head.type = "triangle";
+    head.frequency.setValueAtTime((118 + tone * 28) * tune, time);
+    head.frequency.exponentialRampToValueAtTime((68 + tone * 12) * tune, time + 0.055 * decay);
+    headGain.gain.setValueAtTime((0.14 + punch * 0.08) * v, time);
+    headGain.gain.exponentialRampToValueAtTime(0.001, time + 0.08 * decay);
+    head.connect(headGain).connect(dest);
+    head.start(time);
+    head.stop(time + 0.11 * decay);
+
+    const beater = noiseSource(ctx, 'short');
+    const beaterFilter = ctx.createBiquadFilter();
+    beaterFilter.type = "bandpass";
+    beaterFilter.frequency.value = (1150 + punch * 900 + tone * 350) * tune;
+    beaterFilter.Q.value = 1.8;
+    const beaterGain = ctx.createGain();
+    beaterGain.gain.setValueAtTime((0.035 + punch * 0.05) * v, time);
+    beaterGain.gain.exponentialRampToValueAtTime(0.001, time + 0.018);
+    beater.connect(beaterFilter).connect(beaterGain).connect(dest);
+    beater.start(time);
+    beater.stop(time + 0.026);
+    return;
+  }
+
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.type = "sine";
@@ -74,6 +117,49 @@ export function triggerSnare(ctx, dest, time, velocity = 1, params) {
   const decay = getDecay(params);
   const tone = getTone(params);
   const texture = getTexture(params);
+
+  if (isAcoustic(params)) {
+    const body = ctx.createOscillator();
+    body.type = "triangle";
+    body.frequency.setValueAtTime((184 + tone * 54) * tune, time);
+    body.frequency.exponentialRampToValueAtTime((132 + tone * 24) * tune, time + 0.07 * decay);
+    const bodyGain = ctx.createGain();
+    bodyGain.gain.setValueAtTime((0.22 + (1 - texture) * 0.12) * v, time);
+    bodyGain.gain.exponentialRampToValueAtTime(0.001, time + (0.13 + tone * 0.05) * decay);
+    body.connect(bodyGain).connect(dest);
+    body.start(time);
+    body.stop(time + (0.18 + tone * 0.04) * decay);
+
+    const wires = noiseSource(ctx, 'medium');
+    const hp = ctx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = (1050 + tone * 550) * tune;
+    hp.Q.value = 0.25;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = (2700 + texture * 1300) * tune;
+    bp.Q.value = 0.8 + texture * 0.8;
+    const wireGain = ctx.createGain();
+    wireGain.gain.setValueAtTime((0.24 + texture * 0.28) * v, time);
+    wireGain.gain.exponentialRampToValueAtTime(0.001, time + (0.18 + texture * 0.12) * decay);
+    wires.connect(hp).connect(bp).connect(wireGain).connect(dest);
+    wires.start(time);
+    wires.stop(time + (0.24 + texture * 0.14) * decay);
+
+    const stick = noiseSource(ctx, 'short');
+    const stickBp = ctx.createBiquadFilter();
+    stickBp.type = "bandpass";
+    stickBp.frequency.value = (1850 + tone * 900) * tune;
+    stickBp.Q.value = 2.0;
+    const stickGain = ctx.createGain();
+    stickGain.gain.setValueAtTime((0.08 + texture * 0.04) * v, time);
+    stickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.014);
+    stick.connect(stickBp).connect(stickGain).connect(dest);
+    stick.start(time);
+    stick.stop(time + 0.02);
+    return;
+  }
+
   const noise = noiseSource(ctx, 'medium');
   const noiseFilter = ctx.createBiquadFilter();
   noiseFilter.type = "highpass";
@@ -103,6 +189,26 @@ export function triggerHat(ctx, dest, time, velocity = 1, params) {
   const decay = getDecay(params);
   const tone = getTone(params);
   const texture = getTexture(params);
+
+  if (isAcoustic(params)) {
+    const noise = noiseSource(ctx, 'short');
+    const hp = ctx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = (6200 + tone * 2600) * tune;
+    hp.Q.value = 0.2;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = (9400 + texture * 1600) * tune;
+    bp.Q.value = 0.55 + texture * 0.45;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime((0.09 + texture * 0.08) * v, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + (0.055 + tone * 0.035) * decay);
+    noise.connect(hp).connect(bp).connect(gain).connect(dest);
+    noise.start(time);
+    noise.stop(time + (0.07 + tone * 0.04) * decay);
+    return;
+  }
+
   const noise = noiseSource(ctx, 'short');
   const bp = ctx.createBiquadFilter();
   bp.type = "bandpass";
@@ -122,6 +228,26 @@ export function triggerOpenHat(ctx, dest, time, velocity = 1, params) {
   const decay = getDecay(params);
   const tone = getTone(params);
   const texture = getTexture(params);
+
+  if (isAcoustic(params)) {
+    const noise = noiseSource(ctx, 'medium');
+    const hp = ctx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = (5200 + tone * 2600) * tune;
+    hp.Q.value = 0.2;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = (8400 + texture * 2100) * tune;
+    bp.Q.value = 0.45 + texture * 0.5;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime((0.11 + texture * 0.1) * v, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + (0.28 + tone * 0.16) * decay);
+    noise.connect(hp).connect(bp).connect(gain).connect(dest);
+    noise.start(time);
+    noise.stop(time + (0.34 + tone * 0.18) * decay);
+    return;
+  }
+
   const noise = noiseSource(ctx, 'medium');
   const bp = ctx.createBiquadFilter();
   bp.type = "bandpass";
@@ -187,6 +313,49 @@ export function triggerCymbal(ctx, dest, time, velocity = 1, params) {
   const decay = getDecay(params);
   const tone = getTone(params);
   const texture = getTexture(params);
+
+  if (isAcoustic(params)) {
+    const ping = ctx.createOscillator();
+    const pingGain = ctx.createGain();
+    ping.type = "triangle";
+    ping.frequency.setValueAtTime((2280 + tone * 760) * tune, time);
+    ping.frequency.exponentialRampToValueAtTime((1950 + tone * 620) * tune, time + 0.12);
+    pingGain.gain.setValueAtTime((0.12 + texture * 0.04) * v, time);
+    pingGain.gain.exponentialRampToValueAtTime(0.001, time + (0.22 + texture * 0.14) * decay);
+    ping.connect(pingGain).connect(dest);
+    ping.start(time);
+    ping.stop(time + (0.32 + texture * 0.14) * decay);
+
+    [1.52, 2.08].forEach((ratio, i) => {
+      const partial = ctx.createOscillator();
+      const partialGain = ctx.createGain();
+      partial.type = "sine";
+      partial.frequency.setValueAtTime((2280 + tone * 760) * ratio * tune, time);
+      partialGain.gain.setValueAtTime((0.028 - i * 0.006 + texture * 0.012) * v, time);
+      partialGain.gain.exponentialRampToValueAtTime(0.001, time + (0.18 + i * 0.06) * decay);
+      partial.connect(partialGain).connect(dest);
+      partial.start(time);
+      partial.stop(time + (0.24 + i * 0.08) * decay);
+    });
+
+    const wash = noiseSource(ctx, 'long');
+    const washHp = ctx.createBiquadFilter();
+    washHp.type = 'highpass';
+    washHp.frequency.value = (3600 + tone * 1400) * tune;
+    washHp.Q.value = 0.25;
+    const washLp = ctx.createBiquadFilter();
+    washLp.type = 'lowpass';
+    washLp.frequency.value = (11600 + texture * 2400) * tune;
+    washLp.Q.value = 0.2;
+    const washGain = ctx.createGain();
+    washGain.gain.setValueAtTime((0.035 + texture * 0.04) * v, time);
+    washGain.gain.exponentialRampToValueAtTime((0.025 + texture * 0.035) * v, time + 0.08);
+    washGain.gain.exponentialRampToValueAtTime(0.001, time + (1.8 + texture * 1.5) * decay);
+    wash.connect(washHp).connect(washLp).connect(washGain).connect(dest);
+    wash.start(time);
+    wash.stop(time + (2.1 + texture * 1.7) * decay);
+    return;
+  }
 
   // Stick-click: short noise burst shaped like a ride "tick"
   const tick = noiseSource(ctx, 'short');
