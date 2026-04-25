@@ -39,18 +39,24 @@ The sequencer dims and the background shifts during silence — a clear visual c
 
 ## Beat Sequencer
 
-8 synthesized tracks, no sample files:
+8 synthesized tracks, no sample files. The drum voices are generated with the Web Audio API and can be shaped per kit:
 
 | Track | Synthesis |
 |-------|-----------|
-| Kick | Sine sweep 120→40 Hz |
-| Snare | White noise + triangle body |
-| Hi-Hat | Bandpass noise 8 kHz |
-| Open Hat | Same as hi-hat, longer decay |
+| Kick | Tuned sine/triangle shell sweep with transient click |
+| Snare | Noise wires, stick transient, and shell/body resonance |
+| Hi-Hat | Filtered noise with short acoustic and electronic variants |
+| Open Hat | Filtered noise with longer decay |
 | Clap | Noise burst with short attack |
-| Cymbal / Ride | Highpass + bandpass noise, 1.5s decay |
+| Cymbal / Ride | Noise wash and stick transient; darker acoustic Jazz variant |
 | Tom | Sine sweep, lower frequency |
 | Rimshot | Short click + noise |
+
+Sound kits:
+
+- **Standard** — balanced synthetic drum machine tones.
+- **Hip Hop** — lower tuning, heavier kick/snare, tighter dark hats.
+- **Jazz** — acoustic-style kick, snare, hats, and darker ride cymbal tuned for swing patterns.
 
 **13 groove presets** including three jazz-specific patterns:
 
@@ -66,8 +72,10 @@ The sequencer dims and the background shifts during silence — a clear visual c
 - **3-level velocity**: off → hit → accent (click-cycle)
 - **BPM 50–220**, tap tempo (`T`) or direct click-edit
 - **Swing 0–60%**
+- **Feel modes**: straight 16th feel or triplet swing feel
 - **Per-track mixer**: Volume, Mute, Solo, Copy, Paste
 - **Effects**: Reverb mix, Compressor (threshold/ratio), Voice params (Tune/Decay per track)
+- **Sound kits**: Standard, Hip Hop, Jazz
 - **Pattern management**: 8 named save slots, URL sharing, WAV export
 - **Undo/Redo** (`Cmd+Z` / `Cmd+Shift+Z`)
 - **Dark mode** (`D`)
@@ -102,7 +110,7 @@ npm run dev       # → http://localhost:3032
 ```
 
 ```bash
-npm test          # 226 tests (Vitest + React Testing Library)
+npm test          # 237 tests (Vitest + React Testing Library)
 npm run build     # production build → dist/
 ```
 
