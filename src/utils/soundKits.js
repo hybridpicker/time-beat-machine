@@ -44,7 +44,7 @@ export const SOUND_KITS = {
       hat: { character: 'acoustic', tune: -1, decay: 0.92, tone: 0.62, texture: 0.34, punch: 0.18 },
       openhat: { character: 'acoustic', tune: -2, decay: 1.18, tone: 0.58, texture: 0.36, punch: 0.16 },
       clap: { tune: 0, decay: 0.82, tone: 0.28, texture: 0.24, punch: 0.22 },
-      cymbal: { character: 'acoustic', tune: -2, decay: 1.42, tone: 0.5, texture: 0.56, punch: 0.18 },
+      cymbal: { character: 'acoustic', tune: -4, decay: 1.24, tone: 0.26, texture: 0.32, punch: 0.12 },
       tom: { tune: -2, decay: 1.12, tone: 0.28, texture: 0.18, punch: 0.28 },
       rim: { tune: -2, decay: 0.78, tone: 0.2, texture: 0.12, punch: 0.12 },
     },
@@ -82,7 +82,7 @@ export function getKitSettings(kitId = 'standard') {
 }
 
 export function getRecommendedKitForPreset(name) {
-  if (name === 'Bebop' || name === 'Jazz Modern') return 'jazz';
+  if (name === 'Jazz Swing' || name === 'Bebop' || name === 'Jazz Modern') return 'jazz';
   if (name === 'Trap' || name === 'New Jack' || name === 'Dilla Bounce' || name === 'Dilla Ghost') return 'hiphop';
   return 'standard';
 }
